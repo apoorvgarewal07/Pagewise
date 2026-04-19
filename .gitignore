@@ -7,3 +7,5 @@ test-gemini-models.js
 test-gemini.js
 test-upload.js
 .DS_Store
+
+.vercel
