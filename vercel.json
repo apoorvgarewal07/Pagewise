@@ -19,7 +19,28 @@
       "dest": "server.js"
     },
     {
-      "handle": "filesystem"
+      "src": "/static/(.*)",
+      "dest": "/pdf-chat-ai/client/static/$1"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "/pdf-chat-ai/client/manifest.json"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/pdf-chat-ai/client/favicon.ico"
+    },
+    {
+      "src": "/asset-manifest.json",
+      "dest": "/pdf-chat-ai/client/asset-manifest.json"
+    },
+    {
+      "src": "/robots.txt",
+      "dest": "/pdf-chat-ai/client/robots.txt"
+    },
+    {
+      "src": "/logo(.*)",
+      "dest": "/pdf-chat-ai/client/logo$1"
     },
     {
       "src": "/(.*)",
