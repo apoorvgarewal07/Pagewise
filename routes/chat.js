@@ -40,12 +40,14 @@ router.post("/", async (req, res) => {
 
     const answer = response.text;
 
-    // Store in Firestore
-    await db.collection("chats").add({
-      question,
-      answer,
-      timestamp: new Date()
-    });
+    // Store in Firestore (if Firebase is configured)
+    if (db) {
+      await db.collection("chats").add({
+        question,
+        answer,
+        timestamp: new Date()
+      });
+    }
 
     res.json({ answer });
 
