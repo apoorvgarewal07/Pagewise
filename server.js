@@ -18,6 +18,7 @@ app.use(express.static(path.join(__dirname, 'pdf-chat-ai/client/build')));
 app.use("/api/upload", uploadRoute);
 app.use("/api/chat", chatRoute);
 
+
 // Health check (important for deployment)
 app.get("/api", (req, res) => {
   res.send("Server is running 🚀");

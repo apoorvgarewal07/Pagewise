@@ -3,7 +3,7 @@ import { Upload, Folder, Clock, Star, Archive, HelpCircle, HardDrive, Bell, Sett
 import './index.css';
 
 function App() {
-  const [file, setFile] = useState(null);
+  const [, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
   
@@ -80,9 +80,9 @@ function App() {
         <div className="topbar-left">
           <div className="logo">PDF AI</div>
           <nav className="nav-links">
-            <a href="#" className="active">Workspace</a>
-            <a href="#">Analysis</a>
-            <a href="#">History</a>
+            <button className="active">Workspace</button>
+            <button>Analysis</button>
+            <button>History</button>
           </nav>
         </div>
         <div className="topbar-right">
