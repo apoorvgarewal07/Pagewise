@@ -25,7 +25,7 @@ app.get("/api", (req, res) => {
 });
 
 // Catch all handler: send back React's index.html file for client-side routing
-app.get('*', (req, res) => {
+app.get('*path', (req, res) => {
   res.sendFile(path.join(__dirname, 'pdf-chat-ai/client/build/index.html'));
 });
 
