@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
 require("dotenv").config();
 const db = require("./utils/firebase");
 const uploadRoute = require("./routes/upload");
@@ -8,25 +7,42 @@ const chatRoute = require("./routes/chat");
 
 const app = express();
 
-app.use(cors());
+// CORS — allow frontend origin
+app.use(cors({
+  origin: [
+    "https://chat-with-pdf-ai-frontend.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:3001"
+  ],
+  methods: ["GET", "POST"],
+  credentials: true
+}));
 app.use(express.json());
-
-// Serve static files from the React app build directory
-app.use(express.static(path.join(__dirname, 'pdf-chat-ai/client/build')));
 
 // Routes
 app.use("/api/upload", uploadRoute);
 app.use("/api/chat", chatRoute);
 
+// Health check
+app.get("/", (req, res) => {
+  res.send("Server is running 🚀");
+});
 
-// Health check (important for deployment)
 app.get("/api", (req, res) => {
   res.send("Server is running 🚀");
 });
 
-// Catch all handler: send back React's index.html file for client-side routing
-app.get('*path', (req, res) => {
-  res.sendFile(path.join(__dirname, 'pdf-chat-ai/client/build/index.html'));
+// Test Firebase connection
+app.get("/test", async (req, res) => {
+  try {
+    await db.collection("test").add({
+      message: "Firebase working ✅",
+      time: new Date()
+    });
+    res.send("Data added successfully");
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
 const PORT = process.env.PORT || 5000;
@@ -38,17 +54,3 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 module.exports = app;
-
-
-app.get("/test", async (req, res) => {
-  try {
-    await db.collection("test").add({
-      message: "Firebase working ✅",
-      time: new Date()
-    });
-
-    res.send("Data added successfully");
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});

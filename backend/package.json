@@ -2,7 +2,7 @@
   "name": "chat-with-pdf",
   "version": "1.0.0",
   "scripts": {
-    "build": "cd pdf-chat-ai/client && npm install && npm run build"
+    "start": "node server.js"
   },
   "dependencies": {
     "@google/genai": "^1.50.1",
