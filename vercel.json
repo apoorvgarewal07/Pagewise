@@ -2,49 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "server.js",
+      "src": "backend/server.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "pdf-chat-ai/client/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "server.js"
-    },
-    {
-      "src": "/static/(.*)",
-      "dest": "/pdf-chat-ai/client/static/$1"
-    },
-    {
-      "src": "/manifest.json",
-      "dest": "/pdf-chat-ai/client/manifest.json"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/pdf-chat-ai/client/favicon.ico"
-    },
-    {
-      "src": "/asset-manifest.json",
-      "dest": "/pdf-chat-ai/client/asset-manifest.json"
-    },
-    {
-      "src": "/robots.txt",
-      "dest": "/pdf-chat-ai/client/robots.txt"
-    },
-    {
-      "src": "/logo(.*)",
-      "dest": "/pdf-chat-ai/client/logo$1"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/pdf-chat-ai/client/index.html"
+      "dest": "backend/server.js"
     }
   ]
 }
