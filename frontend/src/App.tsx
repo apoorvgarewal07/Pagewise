@@ -42,11 +42,13 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [latestExpandedQuery, setLatestExpandedQuery] = useState('');
 
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+
   // Check for active backend session on startup (if previously uploaded)
   useEffect(() => {
     async function syncBackendSession() {
       try {
-        const res = await fetch('/api/chat/active');
+        const res = await fetch(`${API_BASE}/api/chat/active`);
         if (res.ok) {
           const data = await res.json();
           if (data.has_active && data.session) {
@@ -135,7 +137,7 @@ export default function App() {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('generate_summary', 'true');
-      const response = await fetch('/api/upload', {
+      const response = await fetch(`${API_BASE}/api/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -281,7 +283,7 @@ export default function App() {
 
     // Try communicating with the real FastAPI backend first
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
