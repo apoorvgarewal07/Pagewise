@@ -1,17 +1,39 @@
+# Dependencies & packages
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables & secrets
 .env
 .env.*
 !.env.example
 firebase-key.json
-test-gemini*.js
-test-upload.js
-.DS_Store
-.vercel
+
+# Python & virtual environments
 __pycache__/
 *.py[cod]
 *$py.class
 *.log
 .pytest_cache/
-graphify-out/
 venv/
 .venv/
+
+# Build & temporary files
+dist/
+build/
+tmp/
+temp/
+graphify-out/
+.vercel
+test-gemini*.js
+test-upload.js
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
