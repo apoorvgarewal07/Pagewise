@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="web_dashboard" name="shell-type"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Geist', sans-serif;
+      }
+      body {
+        overscroll-behavior: none;
+      }
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-tint": "#0053d9",
+            "primary-fixed": "#dbe1ff",
+            "on-error-container": "#93000a",
+            "on-tertiary": "#ffffff",
+            "status-online": "#10B981",
+            "background": "#f8f9fb",
+            "canvas-base": "#FFFFFF",
+            "tertiary-fixed": "#6ffbbe",
+            "primary-container": "#2f6bf2",
+            "surface-bright": "#f8f9fb",
+            "tertiary-container": "#00855b",
+            "surface": "#f8f9fb",
+            "on-primary-fixed-variant": "#003ea6",
+            "inverse-surface": "#2e3132",
+            "on-error": "#ffffff",
+            "on-primary-fixed": "#00174a",
+            "on-primary": "#ffffff",
+            "on-tertiary-fixed-variant": "#005236",
+            "surface-subtle": "#F5F6F8",
+            "surface-dim": "#d9dadc",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-high": "#e7e8ea",
+            "error": "#ba1a1a",
+            "tertiary": "#006947",
+            "on-surface-variant": "#434655",
+            "secondary": "#5e5e61",
+            "inverse-on-surface": "#f0f1f3",
+            "primary": "#0051d3",
+            "on-tertiary-fixed": "#002113",
+            "on-secondary-fixed-variant": "#464749",
+            "error-container": "#ffdad6",
+            "surface-container": "#edeef0",
+            "surface-container-low": "#f3f4f6",
+            "surface-variant": "#e1e2e4",
+            "on-secondary-container": "#626265",
+            "outline-variant": "#c3c6d7",
+            "secondary-container": "#e0dfe2",
+            "ink-primary": "#030712",
+            "surface-border-subtle": "#EEF0F2",
+            "tertiary-fixed-dim": "#4edea3",
+            "inverse-primary": "#b3c5ff",
+            "surface-container-highest": "#e1e2e4",
+            "on-secondary-fixed": "#1b1c1e",
+            "surface-border": "#E5E7EB",
+            "ink-muted": "#9CA3AF",
+            "secondary-fixed": "#e3e2e4",
+            "outline": "#737686",
+            "on-tertiary-container": "#f4fff6",
+            "on-primary-container": "#fefbff",
+            "on-surface": "#191c1e",
+            "on-secondary": "#ffffff",
+            "primary-fixed-dim": "#b3c5ff",
+            "secondary-fixed-dim": "#c7c6c9",
+            "on-background": "#191c1e",
+            "brand-accent-glow": "rgba(47, 107, 242, 0.08)",
+            "ink-secondary": "#4B5563"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "2xl": "1rem",
+            "full": "9999px"
+          },
+          fontFamily: {
+            sans: ["Geist", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-background font-sans text-on-surface antialiased selection:bg-primary-fixed selection:text-primary">
+<!-- LEFT SIDEBAR NAVIGATION (240px) -->
+<aside class="fixed left-0 top-0 h-full w-[240px] bg-canvas-base border-r border-surface-border z-50 flex flex-col justify-between p-4">
+<div class="flex flex-col gap-4">
+<!-- Brand & Workstation Identifier -->
+<div class="flex items-center gap-2.5 px-1 py-1">
+<div class="w-8 h-8 rounded-lg bg-primary-container text-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[19px]">auto_awesome</span>
+</div>
+<div>
+<div class="text-[15px] font-semibold tracking-tight text-ink-primary leading-none">PageWise</div>
+<div class="text-[10px] font-mono font-medium text-ink-muted uppercase tracking-wider mt-1">Doc Intelligence</div>
+</div>
+</div>
+<!-- Primary Action: Upload PDF -->
+<button class="w-full h-9 rounded-lg bg-primary-container hover:bg-primary text-white font-medium text-[13px] flex items-center justify-center gap-1.5 shadow-[0_1px_3px_rgba(47,107,242,0.3)] transition-all" onclick="document.getElementById('pdfFileInput').click()">
+<span class="material-symbols-outlined text-[17px]">upload_file</span>
+<span>Upload PDF</span>
+</button>
+<div class="text-[11px] font-mono text-ink-muted text-center -mt-2">or drag &amp; drop file</div>
+<!-- Navigation Tree -->
+<nav class="flex flex-col gap-0.5 mt-1">
+<a aria-current="page" class="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-container-low text-ink-primary font-medium text-[13px] border border-surface-border transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-primary">folder_open</span>
+<span>All Documents</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary text-[13px] transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-ink-muted">schedule</span>
+<span>Recent</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary text-[13px] transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-ink-muted">star</span>
+<span>Starred</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary text-[13px] transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-ink-muted">archive</span>
+<span>Archived</span>
+</a>
+</nav>
+<!-- Active Corpus Section Card -->
+<div class="flex flex-col gap-1.5 pt-2">
+<div class="text-[11px] font-mono font-medium text-ink-muted uppercase tracking-wider px-1">Active Corpus</div>
+<div class="p-2.5 rounded-lg bg-surface-subtle border border-surface-border-subtle flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">description</span>
+<span class="text-[12px] font-semibold text-ink-primary truncate flex-1">sec-q3-form-10k.pdf</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-canvas-base border border-surface-border text-ink-secondary">48 pgs</span>
+<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-canvas-base border border-surface-border text-ink-secondary">312 chunks</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Live FastAPI Backend Status Indicator -->
+<div class="p-2.5 rounded-lg bg-surface-subtle border border-surface-border flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+<div class="flex flex-col">
+<span class="text-[11px] font-semibold text-ink-primary font-mono leading-tight">FastAPI RAG</span>
+<span class="text-[10px] font-mono text-ink-muted leading-tight">Connected</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded font-medium">24ms</span>
+</div>
+</aside>
+<!-- MAIN EDITORIAL WORKSPACE -->
+<div class="pl-[240px] pr-[280px]">
+<!-- Top Precision Header Bar -->
+<header class="fixed top-0 left-[240px] right-[280px] h-14 bg-canvas-base/95 backdrop-blur-md border-b border-surface-border z-40 flex items-center justify-between px-6">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 text-ink-primary font-medium text-[13px]">
+<span class="material-symbols-outlined text-primary text-[18px]">description</span>
+<span class="font-semibold tracking-tight">sec-q3-form-10k.pdf</span>
+</div>
+<div class="h-3.5 w-px bg-surface-border"></div>
+<div class="flex items-center gap-1.5">
+<span class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-surface-subtle border border-surface-border text-ink-secondary">48 Pages</span>
+<span class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 312 Indexed Chunks
+          </span>
+</div>
+</div>
+<div class="flex items-center gap-2.5">
+<button class="h-8 px-3 rounded-lg bg-surface-subtle hover:bg-surface-container-high border border-surface-border text-ink-primary font-medium text-[12px] flex items-center gap-1.5 transition-colors" onclick="document.getElementById('pdfFileInput').click()">
+<span class="material-symbols-outlined text-[15px] text-ink-secondary">add</span>
+<span>New Document</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-subtle border border-surface-border flex items-center justify-center text-ink-secondary hover:text-ink-primary cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[18px]">person</span>
+</div>
+</div>
+</header>
+<!-- Main Workspace Content Area -->
+<main class="relative pt-14 min-h-screen bg-background">
+<div class="relative w-full overflow-hidden pb-24">
+<!-- Subtle Collect UI / Precision Glow -->
+<div class="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 w-[720px] h-[300px] bg-gradient-to-b from-blue-100/40 via-indigo-50/20 to-transparent blur-3xl opacity-80"></div>
+<!-- Clamped Workstation Center Canvas (760px) -->
+<div class="mx-auto w-full max-w-[760px] px-6 flex flex-col gap-7 relative z-10 pt-8">
+<!-- Hero Header Section -->
+<header class="flex flex-col items-center text-center gap-3">
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-canvas-base border border-surface-border text-ink-secondary font-mono text-[11px] shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="font-medium text-ink-primary">Zero-Hallucination Architecture</span>
+<span class="text-ink-muted">·</span>
+<span class="text-primary font-semibold">v2.4</span>
+</div>
+<h1 class="text-[34px] sm:text-[38px] font-bold text-ink-primary tracking-tight leading-[1.15] mt-1">
+              The <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-600 to-indigo-600">measured RAG copilot.</span>
+</h1>
+<p class="text-[15px] text-ink-secondary max-w-[580px] leading-relaxed">
+              Ask questions about your PDFs. Get grounded answers, precise citations, and evidence you can verify with mathematical certainty.
+            </p>
+<!-- Ground Truth Quality Indicators -->
+<div class="flex flex-wrap items-center justify-center gap-4 pt-1 text-[12px] font-mono text-ink-secondary">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-emerald-600">verified</span> 100% Verifiable Citations
+              </span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">model_training</span> Multi-pass Cross-Encoder
+              </span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span> Verbatim Ground Truth
+              </span>
+</div>
+</header>
+<!-- Tri-Card Feature Architecture Bento (Collect UI Inspired) -->
+<section aria-label="Core Technical Capabilities" class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+<!-- Feature 1: Hybrid Search -->
+<div class="group relative rounded-xl bg-canvas-base p-4 border border-surface-border shadow-[0_1px_3px_rgba(0,0,0,0.02)] hover:border-primary/40 hover:shadow-md transition-all flex flex-col justify-between">
+<div class="flex flex-col gap-2">
+<div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-primary mb-1">
+<span class="material-symbols-outlined text-[18px]">alt_route</span>
+</div>
+<div class="text-[14px] font-semibold text-ink-primary flex items-center justify-between">
+<span>Hybrid Search</span>
+<span class="text-[10px] font-mono text-ink-muted bg-surface-subtle px-1.5 py-0.5 rounded border border-surface-border">RRF k=60</span>
+</div>
+<p class="text-[12px] text-ink-secondary leading-relaxed">
+                  BM25 keyword retrieval fused with dense semantic vectors via Reciprocal Rank Fusion.
+                </p>
+</div>
+<div class="mt-3.5 pt-2.5 border-t border-surface-border-subtle flex items-center justify-between text-[11px] font-mono font-medium text-primary">
+<span>Sparse + Dense</span>
+<span class="material-symbols-outlined text-[14px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+</div>
+</div>
+<!-- Feature 2: Traceable Citations -->
+<div class="group relative rounded-xl bg-canvas-base p-4 border border-surface-border shadow-[0_1px_3px_rgba(0,0,0,0.02)] hover:border-emerald-500/40 hover:shadow-md transition-all flex flex-col justify-between">
+<div class="flex flex-col gap-2">
+<div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mb-1">
+<span class="material-symbols-outlined text-[18px]">menu_book</span>
+</div>
+<div class="text-[14px] font-semibold text-ink-primary flex items-center justify-between">
+<span>Traceable Citations</span>
+<span class="text-[10px] font-mono text-ink-muted bg-surface-subtle px-1.5 py-0.5 rounded border border-surface-border">Exact bbox</span>
+</div>
+<p class="text-[12px] text-ink-secondary leading-relaxed">
+                  Pinpoint page-level citations linked directly to verified source chunk passages in original layout.
+                </p>
+</div>
+<div class="mt-3.5 pt-2.5 border-t border-surface-border-subtle flex items-center justify-between text-[11px] font-mono font-medium text-emerald-700">
+<span>Visual Anchors</span>
+<span class="material-symbols-outlined text-[14px] text-emerald-600">verified</span>
+</div>
+</div>
+<!-- Feature 3: Dual-LLM Verification -->
+<div class="group relative rounded-xl bg-canvas-base p-4 border border-surface-border shadow-[0_1px_3px_rgba(0,0,0,0.02)] hover:border-indigo-400/40 hover:shadow-md transition-all flex flex-col justify-between">
+<div class="flex flex-col gap-2">
+<div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mb-1">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+</div>
+<div class="text-[14px] font-semibold text-ink-primary flex items-center justify-between">
+<span>Dual-LLM Check</span>
+<span class="text-[10px] font-mono text-ink-muted bg-surface-subtle px-1.5 py-0.5 rounded border border-surface-border">Faithfulness</span>
+</div>
+<p class="text-[12px] text-ink-secondary leading-relaxed">
+                  Secondary verification model audits synthesized answers against source evidence before display.
+                </p>
+</div>
+<div class="mt-3.5 pt-2.5 border-t border-surface-border-subtle flex items-center justify-between text-[11px] font-mono font-medium text-indigo-700">
+<span>Auto-Audited</span>
+<span class="material-symbols-outlined text-[14px] text-indigo-500">shield</span>
+</div>
+</div>
+</section>
+<!-- Primary Drop Zone Experience -->
+<section class="flex flex-col gap-2">
+<div class="flex items-center justify-between px-1">
+<div class="text-[11px] font-mono font-medium text-ink-muted uppercase tracking-wider">Corpus Ingestion Portal</div>
+<div class="text-[11px] font-mono text-emerald-700 flex items-center gap-1.5 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span>Engine Ready (HNSW+BM25)</span>
+</div>
+</div>
+<!-- Crisp Dashed Dropzone -->
+<div class="relative rounded-2xl bg-canvas-base border-2 border-dashed border-surface-border p-9 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 shadow-sm hover:border-primary hover:bg-blue-50/20 group" id="dropzone">
+<!-- Subtle Background Grid Vector -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="24" id="grid-rag-light" patternunits="userSpaceOnUse" width="24">
+<path d="M 24 0 L 0 0 0 24" fill="none" stroke="#000000" stroke-width="0.75"></path>
+</pattern>
+</defs>
+<rect fill="url(#grid-rag-light)" height="100%" width="100%"></rect>
+</svg>
+<!-- Upload Cloud Graphic Centerpiece -->
+<div class="relative z-10 w-14 h-14 rounded-xl bg-surface-subtle group-hover:bg-primary-container group-hover:text-white border border-surface-border group-hover:border-primary flex items-center justify-center text-primary transition-all duration-200 shadow-xs mb-3">
+<span class="material-symbols-outlined text-[30px] group-hover:scale-105 transition-transform">cloud_upload</span>
+</div>
+<!-- Main Callout -->
+<div class="relative z-10 flex flex-col items-center gap-1">
+<div class="text-[17px] font-semibold text-ink-primary tracking-tight">
+                  Drop your PDF here
+                </div>
+<div class="text-[13px] text-ink-secondary flex items-center gap-1.5">
+<span>or</span>
+<button class="font-medium text-primary underline underline-offset-4 hover:text-blue-700 transition-colors" type="button">
+                    browse files to upload
+                  </button>
+</div>
+</div>
+<!-- Supported File Specs Badge -->
+<div class="relative z-10 mt-4 px-3 py-1 rounded-full bg-surface-subtle border border-surface-border text-ink-secondary text-[11px] font-mono flex items-center gap-2">
+<span class="flex items-center gap-1 text-ink-primary font-medium">
+<span class="material-symbols-outlined text-[14px] text-primary">picture_as_pdf</span> PDF ≤ 50MB
+                </span>
+<span class="text-surface-dim">•</span>
+<span>Automatic OCR · Token Chunking · Metadata Stripping</span>
+</div>
+<input accept=".pdf" class="hidden" id="pdfFileInput" type="file"/>
+</div>
+<!-- Dynamic State Preview Demonstration Bar -->
+<div class="mt-1 rounded-xl bg-canvas-base border border-surface-border p-3 flex flex-col gap-2.5 shadow-xs">
+<div class="flex items-center justify-between">
+<span class="text-[11px] font-mono font-medium text-ink-muted uppercase tracking-wider">Upload States Demonstration</span>
+<span class="text-[11px] font-mono text-ink-secondary">Click to preview engine response:</span>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5" id="stateSwitcher">
+<button class="state-btn active-state px-2.5 py-1.5 rounded-lg bg-surface-subtle border border-surface-border text-ink-primary font-mono text-[11px] font-medium flex items-center justify-center gap-1.5 transition-all" data-state="idle" onclick="setSimState('idle')">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> 1. Idle
+                </button>
+<button class="state-btn px-2.5 py-1.5 rounded-lg bg-canvas-base border border-transparent hover:border-surface-border text-ink-secondary hover:text-ink-primary font-mono text-[11px] flex items-center justify-center gap-1.5 transition-all" data-state="dragover" onclick="setSimState('dragover')">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span> 2. Drag Over
+                </button>
+<button class="state-btn px-2.5 py-1.5 rounded-lg bg-canvas-base border border-transparent hover:border-surface-border text-ink-secondary hover:text-ink-primary font-mono text-[11px] flex items-center justify-center gap-1.5 transition-all" data-state="processing" onclick="setSimState('processing')">
+<span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-spin"></span> 3. Processing
+                </button>
+<button class="state-btn px-2.5 py-1.5 rounded-lg bg-canvas-base border border-transparent hover:border-surface-border text-ink-secondary hover:text-ink-primary font-mono text-[11px] flex items-center justify-center gap-1.5 transition-all" data-state="success" onclick="setSimState('success')">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 4. Synced
+                </button>
+</div>
+<!-- Dynamic State Sub-Panel -->
+<div class="p-2.5 rounded-lg bg-surface-subtle border border-surface-border-subtle flex items-center justify-between text-[11px] font-mono" id="stateBanner">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary">info</span>
+<span class="text-ink-secondary" id="stateDescription">Ready: Awaiting drag event or file dialog trigger.</span>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-canvas-base border border-surface-border text-emerald-700 font-medium" id="stateLatency">0ms</span>
+</div>
+</div>
+</section>
+<!-- Recent Documents Quick-Select Table -->
+<section class="flex flex-col gap-2">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[17px]">history</span>
+<span class="text-[14px] font-semibold text-ink-primary">Recent Indexed Corpora</span>
+</div>
+<a class="text-[12px] font-medium text-primary hover:text-blue-700 flex items-center gap-0.5 transition-colors" href="#">
+<span>View All</span>
+<span class="material-symbols-outlined text-[15px]">chevron_right</span>
+</a>
+</div>
+<div class="rounded-xl bg-canvas-base border border-surface-border shadow-xs divide-y divide-surface-border-subtle overflow-hidden">
+<!-- Document Row 1 -->
+<div class="group flex items-center justify-between p-3.5 hover:bg-surface-subtle transition-colors cursor-pointer">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-primary group-hover:bg-primary-container group-hover:text-white transition-colors flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]">analytics</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-[13px] font-semibold text-ink-primary truncate group-hover:text-primary transition-colors">
+                      Q3_2024_Financial_Report.pdf
+                    </span>
+<div class="flex items-center gap-2 text-[11px] font-mono text-ink-muted mt-0.5">
+<span class="px-1.5 py-0.2 rounded bg-surface-subtle border border-surface-border text-ink-secondary">64 pages</span>
+<span>•</span>
+<span>192 chunks</span>
+<span>•</span>
+<span class="text-emerald-700 font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>100% Vectorized
+                      </span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[11px] font-mono text-ink-muted hidden sm:inline">Analyzed 2h ago</span>
+<button class="h-7 px-2.5 rounded-md bg-canvas-base group-hover:bg-primary-container group-hover:text-white group-hover:border-primary border border-surface-border text-ink-primary font-medium text-[12px] flex items-center gap-1 transition-all shadow-xs">
+<span>Load</span>
+<span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Document Row 2 -->
+<div class="group flex items-center justify-between p-3.5 hover:bg-surface-subtle transition-colors cursor-pointer">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]">gavel</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-[13px] font-semibold text-ink-primary truncate group-hover:text-purple-600 transition-colors">
+                      Master_Services_Agreement_v4.pdf
+                    </span>
+<div class="flex items-center gap-2 text-[11px] font-mono text-ink-muted mt-0.5">
+<span class="px-1.5 py-0.2 rounded bg-surface-subtle border border-surface-border text-ink-secondary">28 pages</span>
+<span>•</span>
+<span>84 chunks</span>
+<span>•</span>
+<span class="text-emerald-700 font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>100% Vectorized
+                      </span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[11px] font-mono text-ink-muted hidden sm:inline">Analyzed Yesterday</span>
+<button class="h-7 px-2.5 rounded-md bg-canvas-base group-hover:bg-purple-600 group-hover:text-white group-hover:border-purple-600 border border-surface-border text-ink-primary font-medium text-[12px] flex items-center gap-1 transition-all shadow-xs">
+<span>Load</span>
+<span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Document Row 3 -->
+<div class="group flex items-center justify-between p-3.5 hover:bg-surface-subtle transition-colors cursor-pointer">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]">science</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-[13px] font-semibold text-ink-primary truncate group-hover:text-emerald-600 transition-colors">
+                      Clinical_Trial_Protocol_Phase3.pdf
+                    </span>
+<div class="flex items-center gap-2 text-[11px] font-mono text-ink-muted mt-0.5">
+<span class="px-1.5 py-0.2 rounded bg-surface-subtle border border-surface-border text-ink-secondary">112 pages</span>
+<span>•</span>
+<span>340 chunks</span>
+<span>•</span>
+<span class="text-emerald-700 font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>100% Vectorized
+                      </span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[11px] font-mono text-ink-muted hidden sm:inline">Analyzed 3d ago</span>
+<button class="h-7 px-2.5 rounded-md bg-canvas-base group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600 border border-surface-border text-ink-primary font-medium text-[12px] flex items-center gap-1 transition-all shadow-xs">
+<span>Load</span>
+<span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Precision Retrieval Architecture Visualization Card -->
+<section class="rounded-xl bg-canvas-base border border-surface-border p-4 shadow-xs flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]">schema</span>
+<span class="text-[13px] font-semibold text-ink-primary">End-to-End Grounding Guarantee</span>
+</div>
+<span class="text-[10px] font-mono text-ink-muted bg-surface-subtle px-2 py-0.5 rounded border border-surface-border">Strict Verification Protocol</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-2 pt-1">
+<!-- Step 1 -->
+<div class="flex flex-col gap-1 p-3 rounded-lg bg-surface-subtle border border-surface-border-subtle">
+<div class="text-[10px] font-mono text-primary font-semibold">STAGE 01</div>
+<div class="text-[12px] font-semibold text-ink-primary">Visual OCR &amp; BBox</div>
+<p class="text-[11px] text-ink-secondary leading-snug">Extracts bounding boxes with line coordinates preserved.</p>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col gap-1 p-3 rounded-lg bg-surface-subtle border border-surface-border-subtle">
+<div class="text-[10px] font-mono text-indigo-600 font-semibold">STAGE 02</div>
+<div class="text-[12px] font-semibold text-ink-primary">Hybrid Ingestion</div>
+<p class="text-[11px] text-ink-secondary leading-snug">Sparse BM25 token index + Dense 1536d vectors.</p>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col gap-1 p-3 rounded-lg bg-surface-subtle border border-surface-border-subtle">
+<div class="text-[10px] font-mono text-primary font-semibold">STAGE 03</div>
+<div class="text-[12px] font-semibold text-ink-primary">Cross-Encoder</div>
+<p class="text-[11px] text-ink-secondary leading-snug">Cohere ranker drops irrelevant chunks under 0.82 sim.</p>
+</div>
+<!-- Step 4 -->
+<div class="flex flex-col gap-1 p-3 rounded-lg bg-surface-subtle border border-surface-border-subtle">
+<div class="text-[10px] font-mono text-emerald-600 font-semibold">STAGE 04</div>
+<div class="text-[12px] font-semibold text-ink-primary">Faithfulness Arbiter</div>
+<p class="text-[11px] text-ink-secondary leading-snug">Dual-LLM validator eliminates hallucinations before stream.</p>
+</div>
+</div>
+</section>
+<!-- Bottom Floating Prompt Mockup Dock -->
+<div class="sticky bottom-6 w-full rounded-2xl bg-canvas-base border border-surface-border p-2.5 shadow-[0_12px_32px_rgba(0,0,0,0.08)] flex flex-col gap-2">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded-full bg-surface-subtle border border-surface-border text-ink-secondary text-[11px] font-mono flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-primary">psychology</span> Claude 3.5 Sonnet
+                </span>
+<span class="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-mono flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[13px] text-emerald-600">tune</span> Strict Evidence Mode
+                </span>
+</div>
+<span class="text-[11px] font-mono text-ink-muted">Press <kbd class="px-1.5 py-0.5 bg-surface-subtle border border-surface-border rounded text-[10px] text-ink-secondary font-mono">⌘K</kbd> to search</span>
+</div>
+<div class="flex items-center gap-2 bg-surface-subtle border border-surface-border rounded-xl px-3 py-2">
+<span class="material-symbols-outlined text-ink-muted text-[18px]">search</span>
+<input class="w-full bg-transparent text-ink-primary placeholder:text-ink-muted text-[13px] focus:outline-none cursor-not-allowed" disabled="" placeholder="Upload a document above to begin asking grounded questions..." type="text"/>
+<button class="h-7 px-3 rounded-lg bg-surface-container border border-surface-border text-ink-muted text-[12px] font-medium flex items-center gap-1 cursor-not-allowed" disabled="">
+<span>Query</span>
+<span class="material-symbols-outlined text-[14px]">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- RIGHT TELEMETRY & INTELLIGENCE INSPECTION PANEL (280px) -->
+<aside class="fixed right-0 top-0 h-full w-[280px] bg-canvas-base border-l border-surface-border z-50 flex flex-col justify-between p-4 overflow-y-auto">
+<div class="flex flex-col gap-4">
+<!-- Panel Header -->
+<div class="flex items-center justify-between pb-1 border-b border-surface-border-subtle">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">insights</span>
+<span class="text-[13px] font-semibold text-ink-primary tracking-tight">Intelligence</span>
+</div>
+<button class="w-6 h-6 rounded bg-surface-subtle hover:bg-surface-container border border-surface-border flex items-center justify-center text-ink-secondary transition-colors">
+<span class="material-symbols-outlined text-[15px]">chevron_right</span>
+</button>
+</div>
+<!-- Corpus Telemetry Details -->
+<div class="flex flex-col gap-1.5">
+<div class="text-[11px] font-mono font-medium text-ink-muted uppercase tracking-wider px-1">Corpus Telemetry</div>
+<div class="p-3 rounded-lg bg-surface-subtle border border-surface-border-subtle flex flex-col gap-2">
+<div class="flex justify-between items-center text-[12px]">
+<span class="text-ink-secondary">Filename</span>
+<span class="font-mono text-ink-primary font-medium truncate max-w-[130px]">sec-q3-form-10k.pdf</span>
+</div>
+<div class="flex justify-between items-center text-[12px]">
+<span class="text-ink-secondary">Total Pages</span>
+<span class="font-mono text-ink-primary font-medium">48</span>
+</div>
+<div class="flex justify-between items-center text-[12px]">
+<span class="text-ink-secondary">Chunks Vectorized</span>
+<span class="font-mono text-ink-primary font-medium">312</span>
+</div>
+<div class="flex justify-between items-center text-[12px]">
+<span class="text-ink-secondary">Index Status</span>
+<span class="font-mono text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-1.5 py-0.5 rounded font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Synced
+            </span>
+</div>
+</div>
+</div>
+<!-- Retrieval Strategy -->
+<div class="flex flex-col gap-1.5">
+<div class="text-[11px] font-mono font-medium text-ink-muted uppercase tracking-wider px-1">Retrieval Strategy</div>
+<div class="p-3 rounded-lg bg-surface-subtle border border-surface-border-subtle flex flex-col gap-1.5">
+<div class="text-[11px] font-mono text-primary font-semibold leading-tight">
+            BM25 + Dense Vectors → RRF → Re-ranking
+          </div>
+<div class="text-[11px] text-ink-secondary leading-relaxed mt-1">
+            Hybrid reciprocal rank fusion with Cohere cross-encoder re-ranking model.
+          </div>
+</div>
+</div>
+<!-- Active Session -->
+<div class="flex flex-col gap-1.5">
+<div class="text-[11px] font-mono font-medium text-ink-muted uppercase tracking-wider px-1">Active Session</div>
+<div class="p-2.5 rounded-lg bg-surface-subtle border border-surface-border-subtle flex items-center justify-between">
+<span class="text-[11px] font-mono text-ink-primary font-medium truncate">sess_9f82c401aa</span>
+<button class="w-6 h-6 rounded bg-canvas-base border border-surface-border hover:bg-surface-container-high flex items-center justify-center text-ink-secondary hover:text-ink-primary transition-colors" title="Copy Session ID">
+<span class="material-symbols-outlined text-[13px]">content_copy</span>
+</button>
+</div>
+</div>
+<!-- Rewrite & Cache -->
+<div class="flex flex-col gap-1.5">
+<div class="text-[11px] font-mono font-medium text-ink-muted uppercase tracking-wider px-1">Rewrite &amp; Cache</div>
+<div class="p-3 rounded-lg bg-surface-subtle border border-surface-border-subtle flex flex-col gap-2">
+<div class="flex justify-between items-center text-[12px]">
+<span class="text-ink-secondary">Semantic Cache</span>
+<span class="font-mono text-emerald-700 font-semibold">92.4%</span>
+</div>
+<div class="flex justify-between items-center text-[12px]">
+<span class="text-ink-secondary">Query Expansion</span>
+<span class="font-mono text-ink-primary font-medium">Enabled</span>
+</div>
+<div class="text-[11px] font-mono text-ink-secondary p-2 rounded bg-canvas-base border border-surface-border leading-snug">
+            Rewritten: "Q3 capital expenditures vs operating cash flow"
+          </div>
+</div>
+</div>
+</div>
+<!-- Panel Footer -->
+<div class="pt-3 border-t border-surface-border-subtle">
+<div class="text-[10px] font-mono text-ink-muted text-center">PageWise v2.4.1 · Precision RAG</div>
+</div>
+</aside>
+<!-- Interactive Scripts -->
+<script>
+    // Dynamic State Simulation for Technical Demonstration
+    function setSimState(state) {
+      const dropzone = document.getElementById('dropzone');
+      const desc = document.getElementById('stateDescription');
+      const lat = document.getElementById('stateLatency');
+      const buttons = document.querySelectorAll('.state-btn');
+
+      buttons.forEach(btn => {
+        if (btn.getAttribute('data-state') === state) {
+          btn.className = "state-btn active-state px-2.5 py-1.5 rounded-lg bg-surface-subtle border border-surface-border text-ink-primary font-mono text-[11px] font-medium flex items-center justify-center gap-1.5 transition-all";
+        } else {
+          btn.className = "state-btn px-2.5 py-1.5 rounded-lg bg-canvas-base border border-transparent hover:border-surface-border text-ink-secondary hover:text-ink-primary font-mono text-[11px] flex items-center justify-center gap-1.5 transition-all";
+        }
+      });
+
+      if (state === 'idle') {
+        dropzone.className = "relative rounded-2xl bg-canvas-base border-2 border-dashed border-surface-border p-9 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 shadow-sm hover:border-primary hover:bg-blue-50/20 group";
+        desc.textContent = "Ready: Awaiting drag event or file dialog trigger.";
+        lat.textContent = "0ms";
+        lat.className = "px-1.5 py-0.5 rounded bg-canvas-base border border-surface-border text-emerald-700 font-medium";
+      } else if (state === 'dragover') {
+        dropzone.className = "relative rounded-2xl bg-blue-50/50 border-2 border-dashed border-primary p-9 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 shadow-[0_0_24px_rgba(47,107,242,0.15)] group scale-[1.008]";
+        desc.textContent = "Drag target acquired: Release to stage payload buffer.";
+        lat.textContent = "12ms";
+        lat.className = "px-1.5 py-0.5 rounded bg-canvas-base border border-surface-border text-primary font-medium";
+      } else if (state === 'processing') {
+        dropzone.className = "relative rounded-2xl bg-indigo-50/30 border-2 border-dashed border-indigo-300 p-9 flex flex-col items-center justify-center text-center cursor-wait transition-all duration-200 shadow-sm group";
+        desc.innerHTML = `<span class="flex items-center gap-1.5 text-indigo-700"><span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span> Chunking 48 pages &bull; Generating 1536-dim embeddings...</span>`;
+        lat.textContent = "184ms";
+        lat.className = "px-1.5 py-0.5 rounded bg-canvas-base border border-surface-border text-indigo-700 font-medium";
+      } else if (state === 'success') {
+        dropzone.className = "relative rounded-2xl bg-emerald-50/30 border-2 border-dashed border-emerald-400 p-9 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 shadow-sm group";
+        desc.innerHTML = `<span class="flex items-center gap-1.5 text-emerald-700 font-medium"><span class="material-symbols-outlined text-[16px]">check_circle</span> Corpus synchronized: 312 chunks indexed in HNSW index.</span>`;
+        lat.textContent = "24ms";
+        lat.className = "px-1.5 py-0.5 rounded bg-canvas-base border border-surface-border text-emerald-700 font-medium";
+      }
+    }
+
+    // Dropzone click triggers hidden file selector
+    document.getElementById('dropzone').addEventListener('click', (e) => {
+      if (!e.target.closest('button')) {
+        document.getElementById('pdfFileInput').click();
+      }
+    });
+  </script>
+</body></html>

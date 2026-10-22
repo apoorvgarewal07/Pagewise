@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="web_dashboard" name="shell-type"/>
+<title>PageWise · Precision Editorial Workstation</title>
+<!-- Font and Icon Assets -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-tint": "#0053d9",
+            "primary-fixed": "#dbe1ff",
+            "on-error-container": "#93000a",
+            "on-tertiary": "#ffffff",
+            "status-online": "#10B981",
+            "background": "#f8f9fb",
+            "canvas-base": "#FFFFFF",
+            "tertiary-fixed": "#6ffbbe",
+            "primary-container": "#2f6bf2",
+            "surface-bright": "#f8f9fb",
+            "tertiary-container": "#00855b",
+            "surface": "#f8f9fb",
+            "on-primary-fixed-variant": "#003ea6",
+            "inverse-surface": "#2e3132",
+            "on-error": "#ffffff",
+            "on-primary-fixed": "#00174a",
+            "on-primary": "#ffffff",
+            "on-tertiary-fixed-variant": "#005236",
+            "surface-subtle": "#F5F6F8",
+            "surface-dim": "#d9dadc",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-high": "#e7e8ea",
+            "error": "#ba1a1a",
+            "tertiary": "#006947",
+            "on-surface-variant": "#434655",
+            "secondary": "#5e5e61",
+            "inverse-on-surface": "#f0f1f3",
+            "primary": "#0051d3",
+            "on-tertiary-fixed": "#002113",
+            "on-secondary-fixed-variant": "#464749",
+            "error-container": "#ffdad6",
+            "surface-container": "#edeef0",
+            "surface-container-low": "#f3f4f6",
+            "surface-variant": "#e1e2e4",
+            "on-secondary-container": "#626265",
+            "outline-variant": "#c3c6d7",
+            "secondary-container": "#e0dfe2",
+            "ink-primary": "#030712",
+            "surface-border-subtle": "#EEF0F2",
+            "tertiary-fixed-dim": "#4edea3",
+            "inverse-primary": "#b3c5ff",
+            "surface-container-highest": "#e1e2e4",
+            "on-secondary-fixed": "#1b1c1e",
+            "surface-border": "#E5E7EB",
+            "ink-muted": "#9CA3AF",
+            "secondary-fixed": "#e3e2e4",
+            "outline": "#737686",
+            "on-tertiary-container": "#f4fff6",
+            "on-primary-container": "#fefbff",
+            "on-surface": "#191c1e",
+            "on-secondary": "#ffffff",
+            "primary-fixed-dim": "#b3c5ff",
+            "secondary-fixed-dim": "#c7c6c9",
+            "on-background": "#191c1e",
+            "brand-accent-glow": "rgba(47, 107, 242, 0.08)",
+            "ink-secondary": "#4B5563"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "2xl": "1rem",
+            "full": "9999px"
+          },
+          fontFamily: {
+            sans: ["Geist", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fb;
+        color: #191c1e;
+        font-family: 'Geist', sans-serif;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #e2e4e9;
+        border-radius: 9999px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface antialiased">
+<!-- Left Sidebar (240px) -->
+<aside class="fixed left-0 top-0 h-full w-[240px] bg-canvas-base border-r border-surface-border z-50 flex flex-col justify-between p-4 shadow-sm">
+<div class="flex flex-col gap-4">
+<!-- App Brand -->
+<div class="flex items-center gap-2.5 px-1 py-1">
+<div class="w-8 h-8 rounded-lg bg-primary-container text-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[19px]">auto_awesome</span>
+</div>
+<div>
+<div class="font-semibold text-[15px] text-ink-primary tracking-tight leading-tight">PageWise</div>
+<div class="text-[10px] font-mono font-medium tracking-wider text-ink-muted uppercase">Doc Intelligence</div>
+</div>
+</div>
+<!-- Action Button -->
+<div>
+<button class="w-full h-9 rounded-lg bg-primary text-white font-medium text-[13px] flex items-center justify-center gap-1.5 shadow-sm hover:bg-primary/95 transition-all">
+<span class="material-symbols-outlined text-[18px]">upload_file</span>
+<span>Upload PDF</span>
+</button>
+<div class="text-[11px] text-ink-muted text-center mt-1.5 font-mono">or drag &amp; drop file</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex flex-col gap-1 mt-1">
+<a aria-current="page" class="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-subtle border border-surface-border text-ink-primary font-medium text-[13px] transition-colors shadow-xs" href="#">
+<span class="material-symbols-outlined text-[18px] text-primary">folder_open</span>
+<span>All Documents</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary font-medium text-[13px] transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-ink-muted">schedule</span>
+<span>Recent</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary font-medium text-[13px] transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-ink-muted">star</span>
+<span>Starred</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary font-medium text-[13px] transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-ink-muted">archive</span>
+<span>Archived</span>
+</a>
+</nav>
+<!-- Active Corpus Box -->
+<div class="flex flex-col gap-1.5 pt-2 border-t border-surface-border-subtle">
+<div class="text-[10px] font-mono font-semibold text-ink-muted uppercase tracking-wider px-1">Active Corpus</div>
+<div class="p-2.5 rounded-lg bg-surface-subtle border border-surface-border flex flex-col gap-1.5">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-primary text-[17px] flex-shrink-0">description</span>
+<span class="font-medium text-[12px] text-ink-primary truncate">sec-q3-form-10k.pdf</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-canvas-base border border-surface-border text-ink-secondary font-medium">48 pgs</span>
+<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-canvas-base border border-surface-border text-ink-secondary font-medium">312 chunks</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Backend Connection Indicator -->
+<div class="p-2.5 rounded-lg bg-surface-subtle border border-surface-border flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+<div class="flex flex-col">
+<span class="text-[11px] font-mono font-semibold text-ink-primary">FastAPI RAG</span>
+<span class="text-[10px] font-mono text-ink-muted">Connected</span>
+</div>
+</div>
+<span class="text-[10px] font-mono font-semibold text-emerald-700 px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-200">24ms</span>
+</div>
+</aside>
+<!-- Central Viewport with Margins for Left & Right Panels -->
+<div class="pl-[240px] pr-[280px]">
+<!-- Top Document Bar (Header) -->
+<header class="fixed top-0 left-[240px] right-[280px] h-14 bg-canvas-base/90 backdrop-blur-md border-b border-surface-border z-40 flex items-center justify-between px-6 shadow-xs">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">description</span>
+<span class="font-semibold text-[14px] text-ink-primary tracking-tight">sec-q3-form-10k.pdf</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-surface-subtle border border-surface-border text-ink-secondary">48 Pages</span>
+<span class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-medium">312 Indexed Chunks</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="h-8 px-3 rounded-lg bg-canvas-base border border-surface-border hover:bg-surface-subtle text-ink-primary font-medium text-[12px] flex items-center gap-1.5 transition-colors shadow-xs">
+<span class="material-symbols-outlined text-[15px] text-primary">add</span>
+<span>New Document</span>
+</button>
+<div class="w-7 h-7 rounded-full bg-surface-container border border-surface-border flex items-center justify-center text-ink-secondary font-medium text-[11px]">
+<span class="material-symbols-outlined text-[16px]">person</span>
+</div>
+</div>
+</header>
+<!-- Main Workspace Content -->
+<main class="relative pt-14 bg-background min-h-screen">
+<div class="flex flex-col w-full pb-36">
+<!-- Contextual Document Banner -->
+<div class="w-full bg-surface-subtle border-b border-surface-border px-8 py-3.5 shadow-xs">
+<div class="max-w-[760px] mx-auto flex items-center justify-between gap-4">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-8 h-8 rounded-lg bg-canvas-base border border-surface-border flex items-center justify-center text-primary flex-shrink-0 shadow-xs">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-semibold text-[13px] text-ink-primary truncate">Q3_2024_Financial_Report.pdf</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-mono font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Ready
+                  </span>
+</div>
+<div class="flex items-center gap-2 text-[11px] font-mono text-ink-muted">
+<span>64 Pages</span>
+<span>•</span>
+<span>192 Chunks Indexed</span>
+<span>•</span>
+<span class="text-emerald-700 font-medium">Vector &amp; Sparse Synchronized</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2 flex-shrink-0">
+<button class="h-7 px-2.5 rounded-md bg-canvas-base border border-surface-border hover:bg-surface-subtle text-ink-primary text-[11px] font-medium flex items-center gap-1 transition-colors shadow-xs">
+<span class="material-symbols-outlined text-[14px] text-primary">add</span>
+<span>New Document</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Analytical Reading Track (Strictly Clamped to 760px) -->
+<div class="w-full max-w-[760px] mx-auto px-6 pt-6 flex flex-col gap-6">
+<!-- 1. Executive Synthesis Card -->
+<div class="rounded-xl bg-canvas-base border border-surface-border p-5 shadow-xs relative overflow-hidden">
+<div class="flex items-start justify-between gap-3 mb-2.5">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-[19px]">menu_book</span>
+<span class="font-semibold text-[13px] uppercase tracking-wider text-ink-primary">Executive Synthesis</span>
+</div>
+<span class="text-[10px] font-mono font-medium text-ink-muted px-2 py-0.5 rounded bg-surface-subtle border border-surface-border">Auto-Indexed</span>
+</div>
+<p class="text-[13px] text-ink-secondary leading-relaxed mb-4">
+              Q3 fiscal performance shows marked acceleration with consolidated revenue outperforming consensus projections by 4.2%. Strong margin expansion in enterprise cloud infrastructure offset softer cyclical enterprise hardware refresh cycles.
+            </p>
+<div class="flex flex-wrap items-center gap-2 pt-2 border-t border-surface-border-subtle">
+<span class="text-[10px] font-mono font-semibold text-ink-muted uppercase tracking-wider">Grounded Anchors:</span>
+<button class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-subtle hover:bg-slate-100 border border-surface-border text-primary text-[11px] font-mono transition-colors">
+<span class="material-symbols-outlined text-[13px]">description</span>
+<span>[Page 2 · Exec Summary]</span>
+</button>
+<button class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-subtle hover:bg-slate-100 border border-surface-border text-primary text-[11px] font-mono transition-colors">
+<span class="material-symbols-outlined text-[13px]">description</span>
+<span>[Page 4 · Highlights Table]</span>
+</button>
+<span class="text-[11px] font-mono font-medium text-emerald-700 ml-auto flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+                100% Document Verified
+              </span>
+</div>
+</div>
+<!-- 2. User Message 1 -->
+<div class="flex justify-end">
+<div class="max-w-[82%] rounded-2xl rounded-tr-sm bg-primary text-white px-4 py-3 shadow-xs">
+<p class="text-[13px] leading-relaxed font-normal">
+                What was the year-over-year revenue growth and what were the primary operational drivers?
+              </p>
+<div class="mt-1.5 flex justify-end items-center gap-1 text-[10px] font-mono text-white/70">
+<span>14:24:02 UTC</span>
+<span class="material-symbols-outlined text-[12px]">done_all</span>
+</div>
+</div>
+</div>
+<!-- 3. AI Response 1 (Structured Evidence Card) -->
+<div class="flex flex-col gap-2">
+<!-- Search Query Rewrite Badge -->
+<div class="flex items-center gap-2 pl-1">
+<div class="w-5 h-5 rounded-md bg-primary-container text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+<span class="material-symbols-outlined text-[13px]">auto_awesome</span>
+</div>
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-canvas-base border border-surface-border text-[11px] font-mono text-ink-secondary shadow-xs">
+<span class="material-symbols-outlined text-[12px] text-primary">travel_explore</span>
+<span class="text-ink-muted">Expanded Query:</span>
+<span class="text-ink-primary font-medium">"YoY revenue growth Q3 2024 primary drivers operational segments"</span>
+</div>
+</div>
+<!-- Main Evidence Container -->
+<div class="rounded-xl bg-canvas-base border border-surface-border p-5 shadow-xs flex flex-col gap-4">
+<!-- Synthesis Body -->
+<div class="flex flex-col gap-3 text-ink-primary text-[13px] leading-relaxed">
+<p>
+                  During Q3 2024, the company recorded consolidated GAAP revenue of <strong class="text-primary font-semibold">$4.82B</strong>, representing an <strong class="text-emerald-700 font-semibold">+18.4% YoY expansion</strong> compared to $4.07B in Q3 2023 
+                  <button class="inline-flex items-center px-1.5 py-0.5 rounded bg-surface-subtle border border-surface-border text-primary font-mono text-[11px] hover:bg-slate-100 transition-colors ml-1 align-baseline">Page 4</button>.
+                </p>
+<!-- Metrics Grid -->
+<div class="p-3.5 rounded-lg bg-surface-subtle border border-surface-border flex flex-col gap-2">
+<span class="text-[10px] font-mono uppercase tracking-wider text-ink-muted font-semibold">Segment Level Performance Drivers</span>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 mt-0.5">
+<div class="p-2.5 rounded-md bg-canvas-base border border-surface-border flex flex-col">
+<span class="text-[11px] text-ink-muted">Cloud Core Infra</span>
+<span class="text-[18px] font-semibold text-ink-primary mt-0.5">$2.14B</span>
+<span class="text-[11px] font-mono text-emerald-700 font-medium">+26.2% YoY</span>
+</div>
+<div class="p-2.5 rounded-md bg-canvas-base border border-surface-border flex flex-col">
+<span class="text-[11px] text-ink-muted">Platform SaaS</span>
+<span class="text-[18px] font-semibold text-ink-primary mt-0.5">$1.78B</span>
+<span class="text-[11px] font-mono text-emerald-700 font-medium">+14.1% YoY</span>
+</div>
+<div class="p-2.5 rounded-md bg-canvas-base border border-surface-border flex flex-col">
+<span class="text-[11px] text-ink-muted">Client Services</span>
+<span class="text-[18px] font-semibold text-ink-primary mt-0.5">$0.90B</span>
+<span class="text-[11px] font-mono text-ink-secondary font-medium">+3.2% YoY</span>
+</div>
+</div>
+</div>
+<p>
+                  Operational momentum was predominantly guided by three structural factors outlined in the filing:
+                </p>
+<ul class="list-none flex flex-col gap-2 pl-0.5">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[16px] text-emerald-600 mt-0.5 flex-shrink-0">check_circle</span>
+<span><strong class="text-ink-primary font-semibold">Hyperscale Cloud Workload Migration:</strong> Accelerated enterprise commitments yielded a 32% increase in multi-year committed recurring contracts 
+                      <button class="inline-flex items-center px-1.5 py-0.5 rounded bg-surface-subtle border border-surface-border text-primary font-mono text-[11px] hover:bg-slate-100 transition-colors ml-1 align-baseline">Page 12</button>.
+                    </span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[16px] text-emerald-600 mt-0.5 flex-shrink-0">check_circle</span>
+<span><strong class="text-ink-primary font-semibold">Operating Margin Leverage:</strong> Cloud gross margin widened by 280 bps to 71.4%, driven by internal datacenter silicon efficiency initiatives 
+                      <button class="inline-flex items-center px-1.5 py-0.5 rounded bg-surface-subtle border border-surface-border text-primary font-mono text-[11px] hover:bg-slate-100 transition-colors ml-1 align-baseline">Page 18</button>.
+                    </span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[16px] text-emerald-600 mt-0.5 flex-shrink-0">check_circle</span>
+<span><strong class="text-ink-primary font-semibold">Enterprise ARPU Uplift:</strong> Net revenue retention remained robust at 119% as existing accounts provisioned inference capabilities.</span>
+</li>
+</ul>
+</div>
+<!-- Inline Chart Component -->
+<div class="p-3.5 rounded-lg bg-surface-subtle border border-surface-border flex flex-col gap-2">
+<div class="flex items-center justify-between text-ink-muted text-[10px] font-mono uppercase tracking-wider">
+<span class="font-semibold">YoY Quarterly Trajectory ($ Billions)</span>
+<span>Source: SEC Filing 10-Q</span>
+</div>
+<div class="h-16 w-full flex items-end gap-3 pt-2">
+<div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+<div class="w-full bg-slate-200 rounded-t h-[65%]"></div>
+<span class="text-[10px] font-mono text-ink-muted">Q3 '23</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+<div class="w-full bg-slate-200 rounded-t h-[72%]"></div>
+<span class="text-[10px] font-mono text-ink-muted">Q4 '23</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+<div class="w-full bg-slate-200 rounded-t h-[76%]"></div>
+<span class="text-[10px] font-mono text-ink-muted">Q1 '24</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+<div class="w-full bg-slate-200 rounded-t h-[82%]"></div>
+<span class="text-[10px] font-mono text-ink-muted">Q2 '24</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+<div class="w-full bg-primary rounded-t h-[100%] shadow-sm"></div>
+<span class="text-[10px] font-mono text-primary font-semibold">Q3 '24</span>
+</div>
+</div>
+</div>
+<!-- Verifiable Source Citation Cards -->
+<div class="flex flex-col gap-2 pt-1 border-t border-surface-border-subtle">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-mono uppercase tracking-wider text-ink-muted font-semibold">Retrieved Ground-Truth Sources (3 Chunks)</span>
+<span class="text-[10px] font-mono text-emerald-700 font-medium">Cosine Distance ≤ 0.18</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+<!-- Source 1 -->
+<div class="p-2.5 rounded-lg bg-surface-subtle border border-surface-border hover:border-primary/40 hover:bg-slate-100 transition-all flex flex-col justify-between gap-1.5 group cursor-pointer shadow-2xs">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[14px]">description</span>
+<span class="font-semibold text-[11px] text-ink-primary">Page 4</span>
+</div>
+<span class="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-700">0.94 Sim</span>
+</div>
+<p class="text-[11px] text-ink-secondary line-clamp-2 leading-relaxed">
+                      "Consolidated revenue reached $4,821 million, an 18.4% increase from $4,072 million reported in Q3 of the prior fiscal period..."
+                    </p>
+<div class="flex items-center justify-between pt-1">
+<span class="text-[10px] font-mono text-ink-muted truncate">Financial Highlights</span>
+<button class="w-5 h-5 rounded hover:bg-white text-ink-muted hover:text-ink-primary flex items-center justify-center transition-colors" title="Copy exact citation">
+<span class="material-symbols-outlined text-[12px]">content_copy</span>
+</button>
+</div>
+</div>
+<!-- Source 2 -->
+<div class="p-2.5 rounded-lg bg-surface-subtle border border-surface-border hover:border-primary/40 hover:bg-slate-100 transition-all flex flex-col justify-between gap-1.5 group cursor-pointer shadow-2xs">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[14px]">description</span>
+<span class="font-semibold text-[11px] text-ink-primary">Page 12</span>
+</div>
+<span class="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-700">0.89 Sim</span>
+</div>
+<p class="text-[11px] text-ink-secondary line-clamp-2 leading-relaxed">
+                      "Cloud infrastructure revenues advanced to $2,140M as hyperscale demand persisted, marking continuous segment expansion..."
+                    </p>
+<div class="flex items-center justify-between pt-1">
+<span class="text-[10px] font-mono text-ink-muted truncate">Segment Breakdown</span>
+<button class="w-5 h-5 rounded hover:bg-white text-ink-muted hover:text-ink-primary flex items-center justify-center transition-colors" title="Copy exact citation">
+<span class="material-symbols-outlined text-[12px]">content_copy</span>
+</button>
+</div>
+</div>
+<!-- Source 3 -->
+<div class="p-2.5 rounded-lg bg-surface-subtle border border-surface-border hover:border-primary/40 hover:bg-slate-100 transition-all flex flex-col justify-between gap-1.5 group cursor-pointer shadow-2xs">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[14px]">description</span>
+<span class="font-semibold text-[11px] text-ink-primary">Page 18</span>
+</div>
+<span class="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-700">0.82 Sim</span>
+</div>
+<p class="text-[11px] text-ink-secondary line-clamp-2 leading-relaxed">
+                      "Operating margin leverage reflected lower unit server energy consumption and supply-chain negotiated discounts..."
+                    </p>
+<div class="flex items-center justify-between pt-1">
+<span class="text-[10px] font-mono text-ink-muted truncate">Operational Review</span>
+<button class="w-5 h-5 rounded hover:bg-white text-ink-muted hover:text-ink-primary flex items-center justify-center transition-colors" title="Copy exact citation">
+<span class="material-symbols-outlined text-[12px]">content_copy</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Quality Strip -->
+<div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-surface-border-subtle text-[11px] font-mono">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-medium">
+<span class="material-symbols-outlined text-[13px]">verified</span>
+                    Verified Evidence
+                  </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-subtle border border-surface-border text-ink-secondary">
+<span class="material-symbols-outlined text-[13px] text-amber-500">bolt</span>
+                    Cache Hit · 42ms
+                  </span>
+</div>
+<div class="flex items-center gap-4 text-ink-secondary">
+<div class="flex items-center gap-1.5">
+<span class="text-ink-muted">Confidence:</span>
+<div class="w-14 h-1.5 rounded-full bg-slate-200 overflow-hidden flex">
+<div class="bg-emerald-600 h-full w-[96%]"></div>
+</div>
+<span class="text-ink-primary font-semibold">96%</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="text-ink-muted">Faithfulness:</span>
+<span class="text-emerald-700 font-semibold">98.4%</span>
+</div>
+</div>
+</div>
+<!-- Collapsible Telemetry -->
+<details class="group cursor-pointer border-t border-surface-border-subtle pt-2">
+<summary class="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-ink-muted hover:text-ink-primary transition-colors py-0.5">
+<span class="flex items-center gap-1 font-semibold">
+<span class="material-symbols-outlined text-[13px] group-open:rotate-90 transition-transform">chevron_right</span>
+                    Technical Telemetry · pw_sess_9f82c1a
+                  </span>
+<span class="text-ink-muted">BM25 Rank #1 · RRF 0.884</span>
+</summary>
+<div class="p-2.5 rounded bg-surface-subtle border border-surface-border mt-1.5 text-[11px] font-mono text-ink-secondary flex flex-col gap-1">
+<div class="flex justify-between"><span>Vector Dense Score:</span><span class="text-ink-primary font-medium">0.912</span></div>
+<div class="flex justify-between"><span>Sparse Lexical Score (BM25):</span><span class="text-ink-primary font-medium">18.42 (Rank 1)</span></div>
+<div class="flex justify-between"><span>Reciprocal Rank Fusion (k=60):</span><span class="text-ink-primary font-medium">0.884</span></div>
+<div class="flex justify-between"><span>Cohere Re-ranker Cosine:</span><span class="text-emerald-700 font-medium">0.942</span></div>
+<div class="flex justify-between"><span>Token Budget Used:</span><span class="text-ink-primary font-medium">842 Prompt / 218 Generation</span></div>
+</div>
+</details>
+</div>
+</div>
+<!-- 4. User Message 2 -->
+<div class="flex justify-end">
+<div class="max-w-[82%] rounded-2xl rounded-tr-sm bg-primary text-white px-4 py-3 shadow-xs">
+<p class="text-[13px] leading-relaxed font-normal">
+                Are there any mentions of supply chain disruptions impacting Q4 projections?
+              </p>
+<div class="mt-1.5 flex justify-end items-center gap-1 text-[10px] font-mono text-white/70">
+<span>14:26:40 UTC</span>
+<span class="material-symbols-outlined text-[12px]">done_all</span>
+</div>
+</div>
+</div>
+<!-- 5. AI Response 2 (Abstention Guardrail / Alert State) -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2 pl-1">
+<div class="w-5 h-5 rounded-md bg-amber-500 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+<span class="material-symbols-outlined text-[13px]">shield</span>
+</div>
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-canvas-base border border-surface-border text-[11px] font-mono text-ink-secondary shadow-xs">
+<span class="material-symbols-outlined text-[12px] text-amber-600">gavel</span>
+<span class="text-ink-muted">Filter Triggered:</span>
+<span class="text-ink-primary font-medium">Strict Verification Threshold</span>
+</div>
+</div>
+<div class="rounded-xl bg-canvas-base border border-surface-border p-5 shadow-xs flex flex-col gap-4">
+<!-- Warning Banner -->
+<div class="p-3.5 rounded-lg bg-amber-50/60 border border-amber-200/80 flex items-start gap-3">
+<div class="w-7 h-7 rounded-md bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center flex-shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<h4 class="font-semibold text-[13px] text-ink-primary">Unable to answer confidently from this document</h4>
+<p class="text-[12px] text-ink-secondary leading-relaxed">
+                    The available document evidence is insufficient to answer this question reliably. Section 4 touches upon general macroeconomic risk factors, but <strong class="text-ink-primary font-semibold">no specific Q4 supply chain impacts or quantitative forecasts</strong> are documented in this filing.
+                  </p>
+</div>
+</div>
+<!-- Sub-threshold Chunk Reference -->
+<div class="flex flex-col gap-1.5">
+<span class="text-[10px] font-mono uppercase tracking-wider text-ink-muted font-semibold">Nearest Available Passage (Sub-threshold)</span>
+<div class="p-2.5 rounded-lg bg-surface-subtle border border-surface-border flex items-center justify-between gap-3 text-[11px] font-mono">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[15px] text-ink-muted">description</span>
+<span class="text-ink-primary font-medium truncate">Page 51 · Forward-Looking Risks</span>
+<span class="px-1.5 py-0.5 rounded bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-semibold">0.48 Low Sim</span>
+</div>
+<span class="text-ink-muted text-[10px] flex-shrink-0">Filtered out by strict threshold (≥ 0.70)</span>
+</div>
+</div>
+<!-- Quality Strip (Amber/Red Status) -->
+<div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-surface-border-subtle text-[11px] font-mono">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 font-medium">
+<span class="material-symbols-outlined text-[13px]">cancel</span>
+                    Unverified / Grounding Absent
+                  </span>
+<span class="text-ink-muted text-[10px]">Latency: 380ms</span>
+</div>
+<div class="flex items-center gap-1.5 text-ink-secondary">
+<span class="text-ink-muted">Confidence:</span>
+<div class="w-14 h-1.5 rounded-full bg-slate-200 overflow-hidden flex">
+<div class="bg-rose-500 h-full w-[38%]"></div>
+</div>
+<span class="text-rose-700 font-semibold">38%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Query Composer (Clamped over the reading track) -->
+<div class="fixed bottom-0 left-[240px] right-[280px] p-4 pointer-events-none z-30">
+<div class="max-w-[760px] mx-auto pointer-events-auto">
+<div class="rounded-2xl bg-canvas-base/95 backdrop-blur-xl border border-surface-border p-3 shadow-xl flex flex-col gap-2">
+<!-- Dock Control Badges -->
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-1.5">
+<button class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-surface-subtle hover:bg-slate-100 border border-surface-border text-ink-primary font-mono text-[11px] transition-colors">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span>Claude 3.5 Sonnet</span>
+</button>
+<button class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-subtle hover:bg-slate-100 border border-surface-border text-ink-secondary hover:text-ink-primary font-mono text-[11px] transition-colors">
+<span class="material-symbols-outlined text-[13px]">layers</span>
+<span>Hybrid Search (Dense + BM25)</span>
+</button>
+</div>
+<div class="font-mono text-[10px] text-ink-muted flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">keyboard</span>
+<span>Enter to submit · Shift+Enter for newline</span>
+</div>
+</div>
+<!-- Input Area -->
+<div class="flex items-end gap-2 px-1">
+<textarea class="flex-1 bg-transparent border-0 outline-none resize-none text-[13px] text-ink-primary placeholder:text-ink-muted py-1.5 px-1 focus:ring-0 leading-normal" placeholder="Ask anything about this document..." rows="1" style="min-height: 38px; max-height: 120px;"></textarea>
+<div class="flex items-center gap-1.5 flex-shrink-0 mb-0.5">
+<button class="w-8 h-8 rounded-lg bg-surface-subtle border border-surface-border hover:bg-slate-100 text-ink-secondary hover:text-ink-primary flex items-center justify-center transition-colors shadow-2xs" title="Trigger query synthesis">
+<span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+</button>
+<button class="h-8 px-3 rounded-lg bg-primary hover:bg-primary/95 text-white font-medium text-[12px] flex items-center gap-1 shadow-sm transition-all">
+<span>Send</span>
+<span class="material-symbols-outlined text-[15px]">arrow_upward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Right Sidebar: Document Intelligence (280px) -->
+<aside class="fixed right-0 top-0 h-full w-[280px] bg-canvas-base border-l border-surface-border z-50 flex flex-col justify-between p-4 overflow-y-auto shadow-sm">
+<div class="flex flex-col gap-4">
+<!-- Title -->
+<div class="flex items-center justify-between pb-1 border-b border-surface-border-subtle">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">insights</span>
+<span class="font-semibold text-[13px] text-ink-primary uppercase tracking-wider">Intelligence</span>
+</div>
+<button class="w-6 h-6 rounded bg-surface-subtle hover:bg-slate-100 border border-surface-border flex items-center justify-center text-ink-muted hover:text-ink-primary transition-colors">
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</button>
+</div>
+<!-- Corpus Telemetry -->
+<div class="flex flex-col gap-1.5">
+<div class="text-[10px] font-mono font-semibold text-ink-muted uppercase tracking-wider">Corpus Telemetry</div>
+<div class="p-3 rounded-lg bg-surface-subtle border border-surface-border flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<span class="text-[11px] text-ink-muted">Filename</span>
+<span class="text-[11px] font-mono font-medium text-ink-primary truncate max-w-[130px]">sec-q3-form-10k.pdf</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[11px] text-ink-muted">Total Pages</span>
+<span class="text-[11px] font-mono font-medium text-ink-primary">48</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[11px] text-ink-muted">Chunks Vectorized</span>
+<span class="text-[11px] font-mono font-medium text-ink-primary">312</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[11px] text-ink-muted">Index Status</span>
+<span class="text-[10px] font-mono font-medium text-emerald-700 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Synced
+            </span>
+</div>
+</div>
+</div>
+<!-- Retrieval Strategy -->
+<div class="flex flex-col gap-1.5">
+<div class="text-[10px] font-mono font-semibold text-ink-muted uppercase tracking-wider">Retrieval Strategy</div>
+<div class="p-3 rounded-lg bg-surface-subtle border border-surface-border flex flex-col gap-1.5">
+<div class="text-[11px] font-mono text-primary font-semibold leading-tight">BM25 + Dense Vectors → RRF → Re-ranking</div>
+<div class="text-[11px] text-ink-secondary leading-relaxed">Hybrid reciprocal rank fusion with Cohere cross-encoder re-ranking model.</div>
+</div>
+</div>
+<!-- Active Session -->
+<div class="flex flex-col gap-1.5">
+<div class="text-[10px] font-mono font-semibold text-ink-muted uppercase tracking-wider">Active Session</div>
+<div class="p-3 rounded-lg bg-surface-subtle border border-surface-border flex items-center justify-between">
+<span class="text-[11px] font-mono font-medium text-ink-primary truncate">sess_9f82c401aa</span>
+<button class="w-6 h-6 rounded bg-canvas-base border border-surface-border hover:bg-slate-100 flex items-center justify-center text-ink-muted hover:text-ink-primary transition-colors" title="Copy Session ID">
+<span class="material-symbols-outlined text-[13px]">content_copy</span>
+</button>
+</div>
+</div>
+<!-- Rewrite & Cache -->
+<div class="flex flex-col gap-1.5">
+<div class="text-[10px] font-mono font-semibold text-ink-muted uppercase tracking-wider">Rewrite &amp; Cache</div>
+<div class="p-3 rounded-lg bg-surface-subtle border border-surface-border flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<span class="text-[11px] text-ink-muted">Semantic Cache</span>
+<span class="text-[11px] font-mono font-semibold text-emerald-700">92.4%</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[11px] text-ink-muted">Query Expansion</span>
+<span class="text-[11px] font-mono font-medium text-ink-primary">Enabled</span>
+</div>
+<div class="text-[11px] font-mono text-ink-secondary p-2 rounded bg-canvas-base border border-surface-border leading-snug">
+            Rewritten: "Q3 capital expenditures vs operating cash flow"
+          </div>
+</div>
+</div>
+</div>
+<!-- Footer metadata -->
+<div class="pt-3 border-t border-surface-border-subtle">
+<div class="text-[10px] font-mono text-ink-muted text-center">PageWise v2.4.1 · Precision RAG</div>
+</div>
+</aside>
+<script>
+    // Micro-interaction: auto-resizing composer textarea
+    const composerTextarea = document.querySelector('textarea');
+    if (composerTextarea) {
+      composerTextarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      });
+    }
+  </script>
+</body></html>

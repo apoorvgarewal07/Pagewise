@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://chat-with-pdf-backend-4onz.onrender.com/api/$1"
+    }
+  ]
+}
