@@ -1,4 +1,4 @@
-# PageWise — Chat with PDF AI Platform
+# PageWise — Enterprise Document Intelligence & RAG Platform
 
 A production-grade Document Q&A platform built with a Python (FastAPI) RAG backend and a modern React frontend.
 
@@ -7,7 +7,7 @@ A production-grade Document Q&A platform built with a Python (FastAPI) RAG backe
 ## 📁 Repository Structure
 
 ```
-chat-with-pdf/
+pagewise/
 ├── backend/                  # FastAPI RAG Backend Engine
 │   ├── app/                  # Application code (API, Core, Ingestion, Retrieval, Pipeline, LLM)
 │   ├── eval/                 # Evaluation dataset (dataset.jsonl) & run_eval.py

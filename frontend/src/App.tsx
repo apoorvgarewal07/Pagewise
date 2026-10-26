@@ -5,6 +5,7 @@ import { RightPanel } from './components/RightPanel.tsx';
 import { IngestionPortal } from './components/IngestionPortal.tsx';
 import { AnalyticalWorkstation } from './components/AnalyticalWorkstation.tsx';
 import { DocumentBboxViewerModal } from './components/DocumentBboxViewerModal.tsx';
+import { WaveGridBackground } from './components/ui/wave-grid-background.tsx';
 import {
   DocumentCorpus,
   BoundingBox,
@@ -89,7 +90,7 @@ export default function App() {
   }, []);
 
   // Responsive panel toggles
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
 
   // Bounding box inspector modal
@@ -185,70 +186,19 @@ export default function App() {
         setCurrentView('workstation');
         setIsProcessing(false);
         return;
+      } else {
+        const errorData = await response.json().catch(() => null);
+        const detail = errorData?.detail || `Upload failed (Status ${response.status})`;
+        console.error('Backend upload failed:', detail);
+        alert(`Upload Error: ${detail}`);
+        setIsProcessing(false);
+        return;
       }
-    } catch (err) {
-      console.warn('Backend unavailable, using client workstation mode:', err);
+    } catch (err: any) {
+      console.error('Backend unavailable during upload:', err);
+      alert(`Could not connect to backend server: ${err?.message || 'Connection error'}`);
+      setIsProcessing(false);
     }
-
-    // Client fallback if backend is not running
-    const newDoc: DocumentCorpus = {
-      id: `doc-${Date.now()}`,
-      filename,
-      totalPages: 36,
-      chunksVectorized: 168,
-      status: 'Ready',
-      analyzedTimeAgo: 'Analyzed just now',
-      vectorizationPercent: 100,
-      sparseAndDenseSync: true,
-      executiveSummary: `Ingested & vectorized ${filename}. Fully indexed with 1536-dimensional embeddings and BM25 token inversion for exact page bbox anchoring.`,
-      groundedAnchors: [
-        {
-          label: '[Page 1 · Ingestion Lead]',
-          page: 1,
-          section: 'Introduction & Ingestion Metadata',
-          bbox: { page: 1, x: 8, y: 15, width: 84, height: 25 }
-        },
-        {
-          label: '[Page 3 · Verified Records]',
-          page: 3,
-          section: 'Verified Data Schema',
-          bbox: { page: 3, x: 8, y: 30, width: 84, height: 30 }
-        }
-      ],
-      sampleQuestions: [
-        `What are the core findings documented in ${filename}?`,
-        'Are there any risk factors or compliance obligations mentioned?'
-      ],
-      chunks: [
-        {
-          id: `chunk-new-1`,
-          docId: `doc-${Date.now()}`,
-          pageNumber: 1,
-          sectionTitle: 'Document Scope & Overview',
-          content: `Primary operational documentation extracted from ${filename}. All data verified through cross-encoder grounding arbiter with OCR line coordinate preservation.`,
-          bbox: { page: 1, x: 8.5, y: 18.0, width: 83.0, height: 20.0 },
-          denseSim: 0.95,
-          bm25Score: 17.5,
-          rrfScore: 0.91
-        },
-        {
-          id: `chunk-new-2`,
-          docId: `doc-${Date.now()}`,
-          pageNumber: 3,
-          sectionTitle: 'Quantitative Synthesis',
-          content: `Key quantitative indicators show favorable structural growth metrics and compliance alignment.`,
-          bbox: { page: 3, x: 8.5, y: 32.0, width: 83.0, height: 22.0 },
-          denseSim: 0.88,
-          bm25Score: 13.8,
-          rrfScore: 0.84
-        }
-      ]
-    };
-
-    setActiveDoc(newDoc);
-    setChatMessages([]);
-    setCurrentView('workstation');
-    setIsProcessing(false);
   };
 
   const handleAskQuestion = async (questionText: string) => {
@@ -273,11 +223,11 @@ export default function App() {
     const expanded = expandQuery(questionText);
     setLatestExpandedQuery(expanded);
 
-    const searchMode = retrievalMode.includes('Dense')
+    const searchMode = retrievalMode.includes('Hybrid')
+      ? 'hybrid'
+      : retrievalMode.includes('Dense') || retrievalMode.includes('Vector')
       ? 'vector'
-      : retrievalMode.includes('Sparse') || (retrievalMode.includes('BM25') && !retrievalMode.includes('Hybrid'))
-      ? 'bm25'
-      : 'hybrid';
+      : 'bm25';
 
     // Try communicating with the real FastAPI backend first
     try {
@@ -517,26 +467,42 @@ export default function App() {
         }}
       />
 
-      {/* Left Navigation Sidebar (240px) */}
+      {/* 3D Wave Grid Full-Website Interactive Canvas */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <WaveGridBackground
+          gridSize={38}
+          colorBase="#060912"
+          colorHigh="#2563eb"
+          waveAmplitude={0.45}
+          waveSpeed={6.0}
+          waveFrequency={1.2}
+          waveWidth={3.0}
+          vignette={true}
+          autoAnimate={true}
+        />
+      </div>
+
+      {/* Slide-out Navigation Drawer (Hidden by default) */}
       <Sidebar
         currentView={currentView}
         onNavigate={view => setCurrentView(view)}
         activeDoc={activeDoc}
         onUploadClick={() => document.getElementById('globalPdfUpload')?.click()}
-        isMobileOpen={isMobileSidebarOpen}
-        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
-      {/* Center Layout Container (with margins for 240px left and 280px right sidebars on desktop) */}
-      <div className="md:pl-[240px] md:pr-[280px] min-h-screen">
-        {/* Top Precision Header Bar */}
+      {/* Main Content Viewport */}
+      <div className={`relative z-10 transition-all duration-200 min-h-screen ${isRightPanelOpen ? 'lg:pr-[280px]' : 'pr-0'}`}>
+        {/* Top Dark Glass Header Bar */}
         <Header
           activeDoc={activeDoc}
           currentView={currentView}
           onNavigate={view => setCurrentView(view)}
           onNewDocumentClick={() => document.getElementById('globalPdfUpload')?.click()}
-          onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           onToggleRightPanel={() => setIsRightPanelOpen(!isRightPanelOpen)}
+          isRightPanelOpen={isRightPanelOpen}
         />
 
         {/* Screen 1: Ingestion Portal / Overview */}
@@ -557,6 +523,7 @@ export default function App() {
             onFileUpload={handleFileUpload}
             onDirectQuery={handleDirectQueryFromPortal}
             uploadedDocuments={uploadedDocuments}
+            isProcessing={isProcessing}
           />
         )}
 
@@ -573,6 +540,7 @@ export default function App() {
             retrievalMode={retrievalMode}
             onSelectRetrievalMode={setRetrievalMode}
             isProcessing={isProcessing}
+            isRightPanelOpen={isRightPanelOpen}
           />
         )}
       </div>
@@ -597,6 +565,7 @@ export default function App() {
         chunkText={bboxModal.chunkText}
         bbox={bboxModal.bbox}
         simScore={bboxModal.simScore}
+        sessionId={activeDoc.id}
       />
     </div>
   );

@@ -7,7 +7,10 @@ and asserts page-wise citations and answer accuracy.
 
 import sys
 import io
-import fitz  # PyMuPDF
+try:
+    import pymupdf as fitz
+except ImportError:
+    import fitz
 import requests
 
 BASE_URL = "http://localhost:8000"

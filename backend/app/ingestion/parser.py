@@ -5,10 +5,14 @@ from typing import List, Dict, Any, Tuple
 # Attempt PyMuPDF import; fall back to pure-Python pypdf if blocked by OS policy
 HAS_PYMUPDF = False
 try:
-    import fitz  # PyMuPDF
+    import pymupdf as fitz  # Modern PyMuPDF import to eliminate deprecation warning
     HAS_PYMUPDF = True
 except Exception:
-    HAS_PYMUPDF = False
+    try:
+        import fitz  # Legacy PyMuPDF fallback
+        HAS_PYMUPDF = True
+    except Exception:
+        HAS_PYMUPDF = False
 
 import pypdf
 
@@ -22,7 +26,7 @@ class ScannedPDFError(PDFParsingError):
 
 
 class PDFParser:
-    def __init__(self, max_pages: int = 150, max_size_mb: int = 25):
+    def __init__(self, max_pages: int = 3000, max_size_mb: int = 100):
         self.max_pages = max_pages
         self.max_size_bytes = max_size_mb * 1024 * 1024
 

@@ -17,6 +17,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.api.upload import router as upload_router
 from backend.app.api.chat import router as chat_router
+from backend.app.api.document import router as document_router
 from backend.app.core.session_store import session_manager
 from backend.app.core.config import settings
 
@@ -40,6 +41,7 @@ app.add_middleware(
 # Mount API routers
 app.include_router(upload_router)
 app.include_router(chat_router)
+app.include_router(document_router)
 
 
 @app.get("/api/health", tags=["Health"])

@@ -1,5 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BoundingBox } from '../utils/ragEngine.ts';
+import {
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  Minus,
+  Plus,
+  X,
+  Crosshair,
+  CheckCircle2,
+  Copy,
+  Check,
+  FileText,
+  FileCode,
+  Image as ImageIcon,
+  RotateCcw,
+  Loader2
+} from 'lucide-react';
 
 interface DocumentBboxViewerModalProps {
   isOpen: boolean;
@@ -11,6 +28,7 @@ interface DocumentBboxViewerModalProps {
   chunkText: string;
   bbox?: BoundingBox;
   simScore?: number;
+  sessionId?: string;
 }
 
 export const DocumentBboxViewerModal: React.FC<DocumentBboxViewerModalProps> = ({
@@ -22,25 +40,50 @@ export const DocumentBboxViewerModal: React.FC<DocumentBboxViewerModalProps> = (
   sectionTitle,
   chunkText,
   bbox,
-  simScore = 0.94
+  simScore = 0.95,
+  sessionId
 }) => {
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [zoomLevel, setZoomLevel] = useState(100);
   const [copied, setCopied] = useState(false);
+  const [viewMode, setViewMode] = useState<'page' | 'pdf' | 'text'>('page');
+  const [isImgLoading, setIsImgLoading] = useState(true);
+  const [hasImgError, setHasImgError] = useState(false);
+  const [pageTextData, setPageTextData] = useState<string>('');
+  const [loadingText, setLoadingText] = useState(false);
 
   // Sync state if initial page changes
-  React.useEffect(() => {
+  useEffect(() => {
     setCurrentPage(initialPage);
+    setIsImgLoading(true);
+    setHasImgError(false);
   }, [initialPage]);
+
+  // Fetch page text when text tab is active
+  useEffect(() => {
+    if (viewMode === 'text' && sessionId) {
+      setLoadingText(true);
+      fetch(`/api/document/${sessionId}/page/${currentPage}/text`)
+        .then(res => res.json())
+        .then(data => {
+          setPageTextData(data.text || chunkText);
+          setLoadingText(false);
+        })
+        .catch(() => {
+          setPageTextData(chunkText);
+          setLoadingText(false);
+        });
+    }
+  }, [viewMode, currentPage, sessionId, chunkText]);
 
   if (!isOpen) return null;
 
   const currentBBox = bbox || {
     page: currentPage,
-    x: 8.5,
-    y: 28.0,
-    width: 83.0,
-    height: 22.0
+    x: 8.0,
+    y: 22.0,
+    width: 84.0,
+    height: 18.0
   };
 
   const handleCopy = () => {
@@ -49,197 +92,290 @@ export const DocumentBboxViewerModal: React.FC<DocumentBboxViewerModalProps> = (
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const pageImageUrl = `/api/document/${sessionId || 'active'}/page/${currentPage}?snippet=${encodeURIComponent(
+    chunkText.slice(0, 80)
+  )}&dpi=160`;
+
+  const pdfEmbedUrl = `/api/document/${sessionId || 'active'}/pdf#page=${currentPage}`;
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-2 sm:p-4 md:p-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Document Bounding Box Inspector"
+      aria-label="Document Page Citation Inspector"
     >
       <div
-        className="relative w-full max-w-4xl max-h-[92vh] bg-canvas-base rounded-2xl border border-surface-border shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="relative w-full max-w-5xl h-[92vh] bg-slate-950 rounded-2xl border border-slate-800 shadow-2xl flex flex-col overflow-hidden animate-in fade-in duration-150"
         onClick={e => e.stopPropagation()}
       >
         {/* Top Control Bar */}
-        <div className="h-14 px-5 border-b border-surface-border bg-surface-subtle flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-primary-container text-white flex items-center justify-center flex-shrink-0">
-              <span className="material-symbols-outlined text-[18px]">menu_book</span>
+        <div className="h-14 px-4 sm:px-6 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md flex items-center justify-between gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-sky-950/80 border border-sky-800/80 flex items-center justify-center text-sky-400 flex-shrink-0 shadow-sm">
+              <BookOpen className="w-4 h-4" />
             </div>
             <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-[13px] font-semibold text-ink-primary truncate">{documentTitle}</span>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-mono font-medium flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Exact BBox Match
+                <span className="text-[13px] font-semibold text-white truncate max-w-[200px] sm:max-w-[320px]" title={documentTitle}>
+                  {documentTitle}
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 text-[10px] font-mono font-medium flex items-center gap-1 flex-shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Real PDF Page
                 </span>
               </div>
-              <span className="text-[11px] font-mono text-ink-muted truncate">
-                {sectionTitle} · Verified OCR Coordinates
+              <span className="text-[10px] font-mono text-slate-400 truncate max-w-[280px]">
+                {sectionTitle || `Page ${currentPage}`} · Grounded Document View
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 flex-shrink-0">
+          {/* View Mode Switcher */}
+          <div className="hidden md:flex items-center bg-slate-950 border border-slate-800 rounded-lg p-0.5 text-[11px] font-mono">
+            <button
+              onClick={() => setViewMode('page')}
+              className={`px-2.5 py-1 rounded-md transition-all flex items-center gap-1.5 cursor-pointer ${
+                viewMode === 'page'
+                  ? 'bg-sky-600 text-white font-medium shadow-xs'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <ImageIcon className="w-3.5 h-3.5" />
+              <span>Page View</span>
+            </button>
+            <button
+              onClick={() => setViewMode('pdf')}
+              className={`px-2.5 py-1 rounded-md transition-all flex items-center gap-1.5 cursor-pointer ${
+                viewMode === 'pdf'
+                  ? 'bg-sky-600 text-white font-medium shadow-xs'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>PDF Viewer</span>
+            </button>
+            <button
+              onClick={() => setViewMode('text')}
+              className={`px-2.5 py-1 rounded-md transition-all flex items-center gap-1.5 cursor-pointer ${
+                viewMode === 'text'
+                  ? 'bg-sky-600 text-white font-medium shadow-xs'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <FileCode className="w-3.5 h-3.5" />
+              <span>Extracted Text</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             {/* Page navigation */}
-            <div className="flex items-center gap-1 bg-canvas-base border border-surface-border rounded-lg p-0.5 shadow-2xs">
+            <div className="flex items-center gap-1 bg-slate-950 border border-slate-800 rounded-lg p-0.5 shadow-sm">
               <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                onClick={() => {
+                  setCurrentPage(p => Math.max(1, p - 1));
+                  setIsImgLoading(true);
+                  setHasImgError(false);
+                }}
                 disabled={currentPage <= 1}
-                className="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-subtle disabled:opacity-40 text-ink-secondary"
+                className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-800 disabled:opacity-30 text-slate-300 hover:text-white cursor-pointer transition-colors"
                 title="Previous Page"
                 aria-label="Previous Page"
               >
-                <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+                <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="text-[11px] font-mono px-2 text-ink-primary font-medium">
+              <span className="text-[11px] font-mono px-2 text-white font-medium whitespace-nowrap">
                 Page {currentPage} of {totalPages}
               </span>
               <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => {
+                  setCurrentPage(p => Math.min(totalPages, p + 1));
+                  setIsImgLoading(true);
+                  setHasImgError(false);
+                }}
                 disabled={currentPage >= totalPages}
-                className="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-subtle disabled:opacity-40 text-ink-secondary"
+                className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-800 disabled:opacity-30 text-slate-300 hover:text-white cursor-pointer transition-colors"
                 title="Next Page"
                 aria-label="Next Page"
               >
-                <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
 
             {/* Zoom Controls */}
-            <div className="hidden sm:flex items-center gap-1 bg-canvas-base border border-surface-border rounded-lg p-0.5 shadow-2xs">
-              <button
-                onClick={() => setZoomLevel(z => Math.max(75, z - 25))}
-                className="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-subtle text-ink-secondary"
-                title="Zoom Out"
-                aria-label="Zoom Out"
-              >
-                <span className="material-symbols-outlined text-[16px]">remove</span>
-              </button>
-              <span className="text-[11px] font-mono px-1.5 text-ink-muted">{zoomLevel}%</span>
-              <button
-                onClick={() => setZoomLevel(z => Math.min(150, z + 25))}
-                className="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-subtle text-ink-secondary"
-                title="Zoom In"
-                aria-label="Zoom In"
-              >
-                <span className="material-symbols-outlined text-[16px]">add</span>
-              </button>
-            </div>
+            {viewMode === 'page' && (
+              <div className="hidden sm:flex items-center gap-1 bg-slate-950 border border-slate-800 rounded-lg p-0.5 shadow-sm">
+                <button
+                  onClick={() => setZoomLevel(z => Math.max(60, z - 20))}
+                  className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-800 text-slate-300 hover:text-white cursor-pointer transition-colors"
+                  title="Zoom Out"
+                  aria-label="Zoom Out"
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+                <span className="text-[11px] font-mono px-1.5 text-slate-300 min-w-[42px] text-center font-medium">
+                  {zoomLevel}%
+                </span>
+                <button
+                  onClick={() => setZoomLevel(z => Math.min(180, z + 20))}
+                  className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-800 text-slate-300 hover:text-white cursor-pointer transition-colors"
+                  title="Zoom In"
+                  aria-label="Zoom In"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+                {zoomLevel !== 100 && (
+                  <button
+                    onClick={() => setZoomLevel(100)}
+                    className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer transition-colors"
+                    title="Reset Zoom to 100%"
+                    aria-label="Reset Zoom"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            )}
 
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-lg hover:bg-surface-container border border-surface-border flex items-center justify-center text-ink-muted hover:text-ink-primary transition-colors"
+              className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
               aria-label="Close modal"
             >
-              <span className="material-symbols-outlined text-[18px]">close</span>
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Document Simulation Canvas Viewport */}
-        <div className="flex-1 overflow-auto bg-[#e5e7eb]/40 p-6 flex justify-center">
-          <div
-            className="relative bg-white text-[#191c1e] shadow-xl border border-slate-300 rounded-sm p-10 max-w-[680px] w-full transition-transform origin-top"
-            style={{
-              minHeight: '780px',
-              transform: `scale(${zoomLevel / 100})`,
-              transformOrigin: 'top center'
-            }}
-          >
-            {/* Watermark / Header of Document */}
-            <div className="flex items-center justify-between pb-6 border-b border-slate-200 text-[10px] font-mono text-slate-400">
-              <span>UNITED STATES SECURITIES AND EXCHANGE COMMISSION</span>
-              <span>FORM 10-Q · PAGE {currentPage}</span>
-            </div>
-
-            {/* Simulated Document Content */}
-            <div className="py-6 flex flex-col gap-4 text-[12px] leading-relaxed text-slate-800 font-serif">
-              <h2 className="text-[16px] font-bold tracking-tight text-black font-sans uppercase">
-                Item 2. Management's Discussion and Analysis of Financial Condition
-              </h2>
-              <p>
-                The following discussion and analysis of our financial condition and results of operations should be read in conjunction with our condensed consolidated financial statements and the related notes contained within this quarterly report.
-              </p>
-
-              {/* The Highlighted Bounding Box Target */}
-              <div
-                className="relative my-2 p-4 rounded-md border-2 border-primary bg-primary/8 shadow-[0_0_15px_rgba(47,107,242,0.18)]"
-              >
-                {/* Floating Bounding Box Label Tag */}
-                <div className="absolute -top-3.5 left-3 px-2 py-0.5 rounded-full bg-primary text-white text-[10px] font-mono font-semibold flex items-center gap-1 shadow-sm">
-                  <span className="material-symbols-outlined text-[12px]">crop_free</span>
-                  <span>BBox: {currentBBox.x}%x{currentBBox.y}% · {simScore} Sim</span>
+        {/* Viewport Content */}
+        <div className="flex-1 overflow-auto bg-slate-950 p-4 sm:p-6 flex justify-center items-start relative select-text">
+          {/* TAB 1: Real Rendered High-Resolution Page Image */}
+          {viewMode === 'page' && (
+            <div className="relative flex flex-col items-center max-w-full">
+              {isImgLoading && (
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-xs min-h-[500px]">
+                  <Loader2 className="w-8 h-8 text-sky-400 animate-spin mb-2" />
+                  <span className="text-xs font-mono text-slate-300">
+                    Rendering Page {currentPage} from {documentTitle}...
+                  </span>
                 </div>
-                <p className="text-[13px] font-medium leading-relaxed text-ink-primary font-sans pt-1">
-                  {chunkText}
-                </p>
+              )}
+
+              {!hasImgError ? (
+                <div
+                  className="relative shadow-2xl rounded-sm transition-transform origin-top border border-slate-700/80 bg-white"
+                  style={{
+                    transform: `scale(${zoomLevel / 100})`,
+                    transformOrigin: 'top center'
+                  }}
+                >
+                  {/* The Real Rendered Page Image */}
+                  <img
+                    key={`page-${currentPage}-${sessionId}`}
+                    src={pageImageUrl}
+                    alt={`Page ${currentPage} of ${documentTitle}`}
+                    onLoad={() => setIsImgLoading(false)}
+                    onError={() => {
+                      setIsImgLoading(false);
+                      setHasImgError(true);
+                    }}
+                    className="max-w-[760px] w-full h-auto block select-none pointer-events-none"
+                    style={{ minWidth: '320px' }}
+                  />
+
+                  {/* Highlighting Bounding Box Overlay */}
+                  <div
+                    className="absolute border-2 border-sky-500 bg-sky-500/15 rounded-xs transition-all pointer-events-none shadow-[0_0_15px_rgba(56,189,248,0.35)]"
+                    style={{
+                      left: `${currentBBox.x}%`,
+                      top: `${currentBBox.y}%`,
+                      width: `${currentBBox.width}%`,
+                      height: `${currentBBox.height}%`
+                    }}
+                  >
+                    <div className="absolute -top-3.5 left-2 px-2 py-0.5 rounded-md bg-sky-600 text-white font-mono text-[10px] font-semibold flex items-center gap-1 shadow-sm whitespace-nowrap">
+                      <Crosshair className="w-3 h-3 text-white" />
+                      <span>Cited Passage · Page {currentPage}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Fallback if backend image cannot be served */
+                <div className="max-w-[720px] w-full bg-slate-900 border border-slate-800 rounded-xl p-8 flex flex-col gap-4 text-slate-200">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-800 text-xs font-mono text-slate-400">
+                    <span>{documentTitle}</span>
+                    <span>PAGE {currentPage} OF {totalPages}</span>
+                  </div>
+                  <div className="p-4 rounded-lg bg-sky-950/40 border border-sky-800/80">
+                    <div className="text-[11px] font-mono text-sky-400 font-semibold mb-1 flex items-center gap-1">
+                      <Crosshair className="w-3.5 h-3.5" />
+                      <span>Retrieved Verified Excerpt (Page {currentPage}):</span>
+                    </div>
+                    <p className="text-[13px] text-slate-100 font-serif leading-relaxed">
+                      {chunkText}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 2: Native PDF Viewer in Iframe */}
+          {viewMode === 'pdf' && (
+            <div className="w-full h-full flex flex-col rounded-xl overflow-hidden border border-slate-800 bg-white shadow-xl">
+              <iframe
+                src={pdfEmbedUrl}
+                title={`Native PDF Viewer - ${documentTitle}`}
+                className="w-full h-full border-0"
+              />
+            </div>
+          )}
+
+          {/* TAB 3: Verbatim OCR Page Text */}
+          {viewMode === 'text' && (
+            <div className="max-w-[780px] w-full bg-slate-900/90 border border-slate-800 rounded-xl p-6 flex flex-col gap-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800 text-xs font-mono text-slate-400">
+                <span className="font-semibold text-white">Extracted Page {currentPage} Text</span>
+                <span className="text-emerald-400">OCR &amp; Vector Index Synchronized</span>
               </div>
-
-              <p>
-                Operating results for the three months ended September 30, 2024 are not necessarily indicative of results that may be expected for the full fiscal year ending December 31, 2024 or any other future reporting period.
-              </p>
-              <div className="mt-4 p-3 rounded border border-slate-200 bg-slate-50 font-mono text-[10px] text-slate-600">
-                <div className="grid grid-cols-4 font-semibold pb-1 border-b border-slate-200 mb-1">
-                  <span>Revenue Segment</span>
-                  <span>Q3 2024</span>
-                  <span>Q3 2023</span>
-                  <span>Change YoY</span>
+              {loadingText ? (
+                <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400 font-mono text-xs">
+                  <Loader2 className="w-6 h-6 animate-spin text-sky-400" />
+                  <span>Loading verbatim text from page {currentPage}...</span>
                 </div>
-                <div className="grid grid-cols-4 py-0.5">
-                  <span>Cloud Core Infra</span>
-                  <span>$2,140M</span>
-                  <span>$1,695M</span>
-                  <span className="text-emerald-700 font-semibold">+26.2%</span>
-                </div>
-                <div className="grid grid-cols-4 py-0.5">
-                  <span>Platform SaaS</span>
-                  <span>$1,781M</span>
-                  <span>$1,561M</span>
-                  <span className="text-emerald-700 font-semibold">+14.1%</span>
-                </div>
-                <div className="grid grid-cols-4 py-0.5">
-                  <span>Client Services</span>
-                  <span>$900M</span>
-                  <span>$816M</span>
-                  <span className="text-slate-700">+3.2%</span>
-                </div>
-              </div>
+              ) : (
+                <pre className="text-xs font-mono text-slate-200 leading-relaxed whitespace-pre-wrap max-h-[580px] overflow-y-auto p-4 bg-slate-950 rounded-lg border border-slate-800">
+                  {pageTextData || chunkText}
+                </pre>
+              )}
             </div>
-
-            {/* Document Footer */}
-            <div className="absolute bottom-6 left-10 right-10 pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] font-mono text-slate-400">
-              <span>CONFIDENTIAL · PAGEWISE AUDITED INGESTION</span>
-              <span>PARSED WITH COORDINATE METADATA</span>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Bottom Excerpt & Extraction Details Drawer */}
-        <div className="p-4 bg-surface-subtle border-t border-surface-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="px-2 py-1 rounded bg-canvas-base border border-surface-border text-emerald-700 text-[11px] font-mono font-medium flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px]">verified</span>
-              Ground Truth Verbatim Match (Cosine: {simScore})
+        <div className="p-3 sm:p-4 bg-slate-900/90 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 flex-shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="px-2.5 py-1 rounded-lg bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 text-[11px] font-mono font-medium flex items-center gap-1.5 shadow-xs flex-shrink-0">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              Verified Ground Truth Match (Cosine: {simScore})
             </span>
-            <span className="text-[11px] font-mono text-ink-muted hidden md:inline">
-              Page {currentPage} · Chunks Vectorized &amp; OCR Anchored
+            <span className="text-[11px] font-mono text-slate-400 truncate hidden md:inline">
+              Page {currentPage} · BBox OCR Grounded Citation
             </span>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
             <button
               onClick={handleCopy}
-              className="h-8 px-3 rounded-lg bg-canvas-base hover:bg-slate-100 border border-surface-border text-ink-primary font-mono text-[11px] font-medium flex items-center gap-1.5 transition-colors shadow-2xs"
+              className="h-8 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-mono text-[11px] font-medium flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[14px]">
-                {copied ? 'check' : 'content_copy'}
-              </span>
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
               <span>{copied ? 'Copied Passage' : 'Copy Passage'}</span>
             </button>
             <button
               onClick={onClose}
-              className="h-8 px-4 rounded-lg bg-primary hover:bg-primary/95 text-white font-medium text-[12px] flex items-center gap-1 shadow-sm transition-all"
+              className="h-8 px-4 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium text-[12px] flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
             >
               Done
             </button>

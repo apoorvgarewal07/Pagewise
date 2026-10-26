@@ -1,7 +1,8 @@
 import os
 import time
 import asyncio
-from typing import List, Generator, AsyncGenerator, Optional
+import httpx
+from typing import List, Dict, Generator, AsyncGenerator, Optional
 from google import genai
 from google.genai import types
 from backend.app.core.config import settings
@@ -39,42 +40,86 @@ class GeminiClient:
             or "network" in msg
         )
 
-    async def embed_texts(self, texts: List[str], max_retries: int = 5) -> List[List[float]]:
+    async def embed_texts(
+        self,
+        texts: List[str],
+        max_retries: int = 4,
+        batch_size: int = 40,
+        max_quota_chunks: int = 80,
+    ) -> List[List[float]]:
         """
-        Embeds a list of text strings concurrently with individual retries,
-        ensuring exactly 1 embedding per input text.
+        Embeds text strings in batches using Google Gemini batchEmbedContents API.
+        For large documents (e.g. 527 pages), samples up to max_quota_chunks (80)
+        evenly distributed across the document so the upload never exceeds the 100 req/min
+        free-tier quota, while BM25 token search indexes 100% of all chunks.
         """
         if not texts:
             return []
 
-        semaphore = asyncio.Semaphore(10)
-        loop = asyncio.get_event_loop()
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.embedding_model}:batchEmbedContents?key={self.api_key}"
+        dim = 3072
 
-        async def _embed_one(text: str) -> List[float]:
-            async with semaphore:
+        # Determine which chunk indices to embed
+        total_count = len(texts)
+        if total_count <= max_quota_chunks:
+            target_indices = list(range(total_count))
+        else:
+            # Sample evenly from start to end of the document
+            step = (total_count - 1) / float(max_quota_chunks - 1)
+            target_indices = sorted(list(set(int(round(i * step)) for i in range(max_quota_chunks))))
+
+        target_texts = [texts[idx] for idx in target_indices]
+        computed_embeddings: Dict[int, List[float]] = {}
+
+        async with httpx.AsyncClient(timeout=45.0) as http_client:
+            for start_idx in range(0, len(target_texts), batch_size):
+                batch_slice = target_texts[start_idx : start_idx + batch_size]
+                batch_orig_indices = target_indices[start_idx : start_idx + batch_size]
+
+                reqs = [
+                    {
+                        "model": f"models/{self.embedding_model}",
+                        "content": {"parts": [{"text": t}]},
+                    }
+                    for t in batch_slice
+                ]
+                payload = {"requests": reqs}
+
                 attempt = 0
-                while True:
+                while attempt <= max_retries:
                     try:
-                        res = await loop.run_in_executor(
-                            None,
-                            lambda: self.client.models.embed_content(
-                                model=self.embedding_model,
-                                contents=text,
-                            )
-                        )
-                        if res.embeddings and len(res.embeddings) > 0:
-                            return list(res.embeddings[0].values)
-                        return []
-                    except Exception as err:
-                        if not self.is_retryable_error(err) or attempt >= max_retries:
-                            raise err
-                        delay = min(1.0 * (2 ** attempt), 10.0)
+                        resp = await http_client.post(url, json=payload)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            raw_embs = data.get("embeddings", [])
+                            for orig_idx, e in zip(batch_orig_indices, raw_embs):
+                                vals = e.get("values", [])
+                                if vals:
+                                    dim = len(vals)
+                                    computed_embeddings[orig_idx] = vals
+                            break
+                        elif resp.status_code == 429:
+                            delay = min(2.0 * (2 ** attempt), 10.0)
+                            attempt += 1
+                            await asyncio.sleep(delay)
+                        else:
+                            attempt += 1
+                            await asyncio.sleep(1.0)
+                    except Exception:
                         attempt += 1
-                        await asyncio.sleep(delay)
+                        await asyncio.sleep(1.0)
 
-        tasks = [_embed_one(t) for t in texts]
-        embeddings = await asyncio.gather(*tasks)
-        return list(embeddings)
+        # Assemble full list of embeddings matching exact length of `texts`
+        final_embeddings: List[List[float]] = []
+        zero_vec = [0.0] * dim
+
+        for idx in range(total_count):
+            if idx in computed_embeddings:
+                final_embeddings.append(computed_embeddings[idx])
+            else:
+                final_embeddings.append(zero_vec)
+
+        return final_embeddings
 
     async def embed_single(self, text: str) -> List[float]:
         res = await self.embed_texts([text])

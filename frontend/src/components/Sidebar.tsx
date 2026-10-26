@@ -1,13 +1,22 @@
 import React from 'react';
 import { DocumentCorpus } from '../utils/ragEngine.ts';
+import {
+  LayoutDashboard,
+  MessageSquare,
+  CheckCircle2,
+  FolderTree,
+  Upload,
+  X,
+  FileText
+} from 'lucide-react';
 
 interface SidebarProps {
   currentView: 'portal' | 'workstation';
   onNavigate: (view: 'portal' | 'workstation') => void;
   activeDoc: DocumentCorpus;
   onUploadClick: () => void;
-  isMobileOpen?: boolean;
-  onCloseMobile?: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -15,192 +24,126 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onNavigate,
   activeDoc,
   onUploadClick,
-  isMobileOpen = false,
-  onCloseMobile
+  isOpen,
+  onClose
 }) => {
   return (
     <>
-      {/* Mobile backdrop */}
-      {isMobileOpen && (
+      {/* Backdrop */}
+      {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs md:hidden"
-          onClick={onCloseMobile}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-opacity duration-200"
+          onClick={onClose}
         />
       )}
 
+      {/* Drawer */}
       <aside
-        className={`fixed left-0 top-0 h-full w-[240px] bg-canvas-base border-r border-surface-border z-50 flex flex-col justify-between p-4 shadow-sm transition-transform duration-200 md:translate-x-0 ${
-          isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        className={`fixed left-0 top-0 h-full w-[260px] bg-slate-950/95 backdrop-blur-2xl border-r border-slate-800 z-50 flex flex-col justify-between p-4 shadow-2xl transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex flex-col gap-4">
-          {/* Brand & Workstation Identifier */}
-          <div
-            className="flex items-center gap-2.5 px-1 py-1 cursor-pointer group"
+        <div className="flex flex-col gap-5">
+          {/* Brand Header & Close button */}
+          <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div
+              className="flex items-center gap-2.5 cursor-pointer group"
+              onClick={() => {
+                onNavigate('portal');
+                onClose();
+              }}
+            >
+              <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center font-mono text-[13px] font-bold group-hover:bg-sky-500 group-hover:text-slate-950 transition-all">
+                PW
+              </div>
+              <div>
+                <div className="text-[14px] font-bold text-white tracking-tight">PageWise</div>
+                <div className="text-[10px] font-mono text-slate-400 tracked-caps">Document AI</div>
+              </div>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
+              title="Close Menu"
+              aria-label="Close Menu"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Quick Action: Upload */}
+          <button
             onClick={() => {
-              onNavigate('portal');
-              if (onCloseMobile) onCloseMobile();
+              onUploadClick();
+              onClose();
             }}
+            className="w-full h-9 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium text-[13px] flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-lg bg-primary-container text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-              <span className="material-symbols-outlined text-[19px]">auto_awesome</span>
-            </div>
-            <div>
-              <div className="text-[15px] font-semibold tracking-tight text-ink-primary leading-none">
-                PageWise
-              </div>
-              <div className="text-[10px] font-mono font-medium text-ink-muted uppercase tracking-wider mt-1">
-                Doc Intelligence
-              </div>
-            </div>
-          </div>
+            <Upload className="w-4 h-4" />
+            <span>Upload Document</span>
+          </button>
 
-          {/* Primary Action: Upload PDF */}
-          <div>
-            <button
-              onClick={onUploadClick}
-              className="w-full h-9 rounded-lg bg-primary hover:bg-primary-container text-white font-medium text-[13px] flex items-center justify-center gap-1.5 shadow-[0_1px_3px_rgba(47,107,242,0.3)] transition-all cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[17px]">upload_file</span>
-              <span>Upload PDF</span>
-            </button>
-            <div className="text-[11px] font-mono text-ink-muted text-center mt-1">
-              or drag &amp; drop file
-            </div>
-          </div>
-
-          {/* Navigation Tree */}
-          <nav className="flex flex-col gap-0.5 mt-1" aria-label="Main Navigation">
+          {/* Navigation Items */}
+          <nav className="flex flex-col gap-1.5" aria-label="Main Navigation">
             <button
               onClick={() => {
                 onNavigate('portal');
-                if (onCloseMobile) onCloseMobile();
+                onClose();
               }}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-[13px] transition-colors text-left ${
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-[13px] transition-colors text-left cursor-pointer ${
                 currentView === 'portal'
-                  ? 'bg-surface-container-low text-ink-primary border border-surface-border shadow-2xs font-semibold'
-                  : 'text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary'
+                  ? 'bg-slate-900 text-white border border-slate-800 font-semibold'
+                  : 'text-slate-400 hover:bg-slate-900/60 hover:text-white'
               }`}
             >
-              <span className="material-symbols-outlined text-[18px] text-primary">folder_open</span>
-              <span>All Documents</span>
+              <LayoutDashboard className={`w-4 h-4 ${currentView === 'portal' ? 'text-sky-400' : 'text-slate-500'}`} />
+              <span>Upload Portal</span>
             </button>
 
-            <button
-              onClick={() => {
-                onNavigate('workstation');
-                if (onCloseMobile) onCloseMobile();
-              }}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] transition-colors text-left ${
-                currentView === 'workstation'
-                  ? 'bg-surface-container-low text-ink-primary border border-surface-border shadow-2xs font-semibold'
-                  : 'text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px] text-primary">rate_review</span>
-              <span>Active Workstation</span>
-            </button>
-
-            <a
-              href="#recent"
-              onClick={e => {
-                e.preventDefault();
-                onNavigate('portal');
-                if (onCloseMobile) onCloseMobile();
-              }}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary text-[13px] transition-colors"
-            >
-              <span className="material-symbols-outlined text-[18px] text-ink-muted">schedule</span>
-              <span>Recent</span>
-            </a>
-
-            <a
-              href="#starred"
-              onClick={e => {
-                e.preventDefault();
-                onNavigate('portal');
-                if (onCloseMobile) onCloseMobile();
-              }}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary text-[13px] transition-colors"
-            >
-              <span className="material-symbols-outlined text-[18px] text-ink-muted">star</span>
-              <span>Starred</span>
-            </a>
-
-            <a
-              href="#archived"
-              onClick={e => {
-                e.preventDefault();
-                onNavigate('portal');
-                if (onCloseMobile) onCloseMobile();
-              }}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary text-[13px] transition-colors"
-            >
-              <span className="material-symbols-outlined text-[18px] text-ink-muted">archive</span>
-              <span>Archived</span>
-            </a>
-          </nav>
-
-          {/* Active Corpus Section Card */}
-          <div className="flex flex-col gap-1.5 pt-2 border-t border-surface-border-subtle">
-            <div className="text-[11px] font-mono font-medium text-ink-muted uppercase tracking-wider px-1">
-              Active Corpus
-            </div>
-            {activeDoc.id ? (
-              <div
+            {activeDoc.id && (
+              <button
                 onClick={() => {
                   onNavigate('workstation');
-                  if (onCloseMobile) onCloseMobile();
+                  onClose();
                 }}
-                className="p-2.5 rounded-lg bg-surface-subtle border border-surface-border hover:border-primary/40 cursor-pointer transition-all flex flex-col gap-2 group"
-                title="Open document in workstation"
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] transition-colors text-left cursor-pointer ${
+                  currentView === 'workstation'
+                    ? 'bg-slate-900 text-white border border-slate-800 font-semibold'
+                    : 'text-slate-400 hover:bg-slate-900/60 hover:text-white'
+                }`}
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="material-symbols-outlined text-primary text-[18px] flex-shrink-0">
-                    description
-                  </span>
-                  <span className="text-[12px] font-semibold text-ink-primary truncate flex-1 group-hover:text-primary transition-colors">
-                    {activeDoc.filename}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-canvas-base border border-surface-border text-ink-secondary">
-                    {activeDoc.totalPages} pgs
-                  </span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-canvas-base border border-surface-border text-ink-secondary">
-                    {activeDoc.chunksVectorized} chunks
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={onUploadClick}
-                className="p-2.5 rounded-lg bg-surface-subtle border border-dashed border-surface-border hover:border-primary/50 text-left transition-all flex items-center gap-2 text-ink-secondary hover:text-ink-primary cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[16px] text-primary">add_circle</span>
-                <span className="text-[11px] font-mono">Upload a PDF to start</span>
+                <MessageSquare className={`w-4 h-4 ${currentView === 'workstation' ? 'text-sky-400' : 'text-slate-500'}`} />
+                <span>Active Workspace</span>
               </button>
             )}
-          </div>
+          </nav>
+
+          {/* Active Document Card if loaded */}
+          {activeDoc.id && (
+            <div className="flex flex-col gap-2 p-3 rounded-xl bg-slate-900/70 border border-slate-800">
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider font-semibold">
+                Active Document
+              </span>
+              <div className="flex items-center gap-2 min-w-0">
+                <FileText className="w-4 h-4 text-sky-400 flex-shrink-0" />
+                <span className="text-xs text-white font-medium truncate" title={activeDoc.filename}>
+                  {activeDoc.filename}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
+                <span>{activeDoc.totalPages} Pages</span>
+                <span>•</span>
+                <span className="text-emerald-400">{activeDoc.chunksVectorized} Chunks</span>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Live FastAPI Backend Status Indicator */}
-        <div className="p-2.5 rounded-lg bg-surface-subtle border border-surface-border flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <div className="flex flex-col">
-              <span className="text-[11px] font-semibold text-ink-primary font-mono leading-tight">
-                FastAPI RAG
-              </span>
-              <span className="text-[10px] font-mono text-ink-muted leading-tight">Connected</span>
-            </div>
-          </div>
-          <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded font-medium">
-            24ms
+        {/* Footer info */}
+        <div className="pt-3 border-t border-slate-800 text-center">
+          <span className="text-[10px] font-mono text-slate-500 tracked-caps">
+            PageWise Document Intelligence
           </span>
         </div>
       </aside>

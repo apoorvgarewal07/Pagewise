@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { DocumentCorpus } from '../utils/ragEngine.ts';
+import { SlidersHorizontal, X, Copy, Check } from 'lucide-react';
 
 interface RightPanelProps {
   activeDoc: DocumentCorpus;
@@ -31,158 +32,160 @@ export const RightPanel: React.FC<RightPanelProps> = ({
 
   return (
     <>
-      {/* Mobile backdrop */}
+      {/* Mobile/Tablet backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs md:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden"
           onClick={onToggle}
         />
       )}
       <aside
-        className={`fixed right-0 top-0 h-full w-[280px] bg-canvas-base border-l border-surface-border z-50 flex flex-col justify-between p-4 overflow-y-auto shadow-sm transition-transform duration-200 ${
-          isOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'
+        className={`fixed right-0 top-0 h-full w-[280px] bg-slate-950/95 backdrop-blur-2xl border-l border-slate-800 z-50 flex flex-col justify-between p-4 overflow-y-auto shadow-2xl transition-transform duration-300 ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         <div className="flex flex-col gap-4">
           {/* Panel Header */}
-          <div className="flex items-center justify-between pb-1 border-b border-surface-border-subtle">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-800">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-[18px]">insights</span>
-              <span className="text-[13px] font-semibold text-ink-primary tracking-tight">Intelligence</span>
+              <SlidersHorizontal className="w-4 h-4 text-sky-400" />
+              <span className="text-[13px] font-semibold text-white tracking-tight">Telemetry</span>
             </div>
             <button
               onClick={onToggle}
-              className="w-7 h-7 rounded bg-surface-subtle hover:bg-surface-container border border-surface-border flex items-center justify-center text-ink-secondary hover:text-ink-primary transition-colors cursor-pointer"
-              title="Close Inspection Panel"
-              aria-label="Close Inspection Panel"
+              className="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
+              title="Close Telemetry Panel"
+              aria-label="Close Telemetry Panel"
             >
-              <span className="material-symbols-outlined text-[15px]">close</span>
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-        {/* Corpus Telemetry Details */}
-        <div className="flex flex-col gap-1.5">
-          <div className="text-[11px] font-mono font-medium text-ink-muted uppercase tracking-wider px-1">
-            Corpus Telemetry
+          {/* Corpus Telemetry Details */}
+          <div className="flex flex-col gap-1.5">
+            <div className="text-[10px] font-mono font-medium text-slate-400 tracked-caps px-1">
+              CORPUS METRICS
+            </div>
+            <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col gap-2">
+              <div className="flex justify-between items-center text-[12px]">
+                <span className="text-slate-400">Filename</span>
+                <span className="font-mono text-white font-medium truncate max-w-[130px]" title={activeDoc.filename}>
+                  {activeDoc.filename}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-[12px]">
+                <span className="text-slate-400">Total Pages</span>
+                <span className="font-mono text-white font-medium">{activeDoc.totalPages}</span>
+              </div>
+              <div className="flex justify-between items-center text-[12px]">
+                <span className="text-slate-400">Chunks Vectorized</span>
+                <span className="font-mono text-white font-medium">{activeDoc.chunksVectorized}</span>
+              </div>
+              <div className="flex justify-between items-center text-[12px]">
+                <span className="text-slate-400">Index Status</span>
+                {activeDoc.id ? (
+                  <span className="font-mono text-[11px] text-emerald-400 bg-emerald-950/80 border border-emerald-800/80 px-1.5 py-0.5 rounded font-medium flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Synced
+                  </span>
+                ) : (
+                  <span className="font-mono text-[11px] text-slate-400 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded font-medium flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Awaiting PDF
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="p-3 rounded-lg bg-surface-subtle border border-surface-border-subtle flex flex-col gap-2">
-            <div className="flex justify-between items-center text-[12px]">
-              <span className="text-ink-secondary">Filename</span>
-              <span className="font-mono text-ink-primary font-medium truncate max-w-[130px]" title={activeDoc.filename}>
-                {activeDoc.filename}
+
+          {/* Retrieval Strategy */}
+          <div className="flex flex-col gap-1.5">
+            <div className="text-[10px] font-mono font-medium text-slate-400 tracked-caps px-1">
+              RETRIEVAL STRATEGY
+            </div>
+            <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col gap-1.5">
+              <div className="text-[11px] font-mono text-sky-400 font-semibold leading-tight">
+                {retrievalMode.includes('Hybrid')
+                  ? 'BM25 + Dense Vectors → RRF → Rerank'
+                  : retrievalMode.includes('Dense') || retrievalMode.includes('Vector')
+                  ? 'Dense Vectors (1536d Cosine) → Rerank'
+                  : 'Sparse BM25+ Token Match → Rerank'}
+              </div>
+              <div className="text-[11px] text-slate-400 leading-relaxed mt-1">
+                {retrievalMode.includes('Hybrid')
+                  ? 'Hybrid reciprocal rank fusion combining dense embeddings and sparse BM25 token index.'
+                  : retrievalMode.includes('Dense') || retrievalMode.includes('Vector')
+                  ? 'Dense vector similarity retrieval over Gemini 1536d embeddings.'
+                  : 'Sparse lexical BM25+ inverted index token matching.'}
+              </div>
+              {retrievalMode.includes('Hybrid') && (
+                <div className="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono text-slate-400">
+                  <span>RRF Parameter (k)</span>
+                  <button
+                    onClick={() => setRrfK(k => (k === 60 ? 40 : k === 40 ? 80 : 60))}
+                    className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-white font-medium hover:bg-slate-700 transition-colors"
+                  >
+                    k={rrfK}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Active Session */}
+          <div className="flex flex-col gap-1.5">
+            <div className="text-[10px] font-mono font-medium text-slate-400 tracked-caps px-1">
+              ACTIVE SESSION
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+              <span className="text-[11px] font-mono text-white font-medium truncate">
+                {sessionId || 'session_none'}
               </span>
+              <button
+                onClick={handleCopySession}
+                className="w-6 h-6 rounded bg-slate-800 border border-slate-700 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors cursor-pointer"
+                title="Copy Session ID"
+                aria-label="Copy Session ID"
+              >
+                {copiedSession ? (
+                  <Check className="w-3 h-3 text-emerald-400" />
+                ) : (
+                  <Copy className="w-3 h-3 text-slate-400" />
+                )}
+              </button>
             </div>
-            <div className="flex justify-between items-center text-[12px]">
-              <span className="text-ink-secondary">Total Pages</span>
-              <span className="font-mono text-ink-primary font-medium">{activeDoc.totalPages}</span>
+          </div>
+
+          {/* Rewrite & Cache */}
+          <div className="flex flex-col gap-1.5">
+            <div className="text-[10px] font-mono font-medium text-slate-400 tracked-caps px-1">
+              REWRITE &amp; CACHE
             </div>
-            <div className="flex justify-between items-center text-[12px]">
-              <span className="text-ink-secondary">Chunks Vectorized</span>
-              <span className="font-mono text-ink-primary font-medium">{activeDoc.chunksVectorized}</span>
-            </div>
-            <div className="flex justify-between items-center text-[12px]">
-              <span className="text-ink-secondary">Index Status</span>
-              {activeDoc.id ? (
-                <span className="font-mono text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-1.5 py-0.5 rounded font-medium flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Synced
+            <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col gap-2">
+              <div className="flex justify-between items-center text-[12px]">
+                <span className="text-slate-400">Semantic Cache</span>
+                <span className="font-mono text-emerald-400 font-semibold">{cacheHitRate}</span>
+              </div>
+              <div className="flex justify-between items-center text-[12px]">
+                <span className="text-slate-400">Query Expansion</span>
+                <span className="font-mono text-white font-medium">
+                  {latestExpandedQuery ? 'Active' : 'Standby'}
                 </span>
-              ) : (
-                <span className="font-mono text-[11px] text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded font-medium flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Awaiting PDF
-                </span>
+              </div>
+              {latestExpandedQuery && (
+                <div className="text-[11px] font-mono text-slate-300 p-2 rounded-lg bg-slate-950/80 border border-slate-800 leading-snug break-words">
+                  Rewritten: "{latestExpandedQuery}"
+                </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Retrieval Strategy */}
-        <div className="flex flex-col gap-1.5">
-          <div className="text-[11px] font-mono font-medium text-ink-muted uppercase tracking-wider px-1">
-            Retrieval Strategy
-          </div>
-          <div className="p-3 rounded-lg bg-surface-subtle border border-surface-border-subtle flex flex-col gap-1.5">
-            <div className="text-[11px] font-mono text-primary font-semibold leading-tight">
-              {retrievalMode.includes('Dense')
-                ? 'Dense Vectors (1536d Cosine) → Rerank'
-                : retrievalMode.includes('Sparse') || (retrievalMode.includes('BM25') && !retrievalMode.includes('Hybrid'))
-                ? 'Sparse BM25+ Token Match → Rerank'
-                : 'BM25 + Dense Vectors → RRF → Rerank'}
-            </div>
-            <div className="text-[11px] text-ink-secondary leading-relaxed mt-1">
-              {retrievalMode.includes('Dense')
-                ? 'Pure dense semantic vector similarity retrieval over Gemini 1536-dimensional embeddings.'
-                : retrievalMode.includes('Sparse') || (retrievalMode.includes('BM25') && !retrievalMode.includes('Hybrid'))
-                ? 'Pure sparse lexical BM25+ inverted index token matching with positive score bounds.'
-                : 'Hybrid reciprocal rank fusion combining dense embeddings and sparse BM25 token index.'}
-            </div>
-            {retrievalMode.includes('Hybrid') && (
-              <div className="mt-2 pt-2 border-t border-surface-border flex items-center justify-between text-[10px] font-mono text-ink-muted">
-                <span>RRF Parameter (k)</span>
-                <button
-                  onClick={() => setRrfK(k => (k === 60 ? 40 : k === 40 ? 80 : 60))}
-                  className="px-1.5 py-0.5 rounded bg-canvas-base border border-surface-border text-ink-primary font-medium hover:bg-slate-100 transition-colors"
-                >
-                  k={rrfK}
-                </button>
-              </div>
-            )}
+        {/* Panel Footer */}
+        <div className="pt-3 border-t border-slate-800">
+          <div className="text-[10px] font-mono text-slate-500 text-center tracked-caps">
+            PageWise Precision RAG
           </div>
         </div>
-
-        {/* Active Session */}
-        <div className="flex flex-col gap-1.5">
-          <div className="text-[11px] font-mono font-medium text-ink-muted uppercase tracking-wider px-1">
-            Active Session
-          </div>
-          <div className="p-2.5 rounded-lg bg-surface-subtle border border-surface-border-subtle flex items-center justify-between">
-            <span className="text-[11px] font-mono text-ink-primary font-medium truncate">
-              {sessionId}
-            </span>
-            <button
-              onClick={handleCopySession}
-              className="w-6 h-6 rounded bg-canvas-base border border-surface-border hover:bg-surface-container-high flex items-center justify-center text-ink-secondary hover:text-ink-primary transition-colors cursor-pointer"
-              title="Copy Session ID"
-              aria-label="Copy Session ID"
-            >
-              <span className="material-symbols-outlined text-[13px]">
-                {copiedSession ? 'check' : 'content_copy'}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Rewrite & Cache */}
-        <div className="flex flex-col gap-1.5">
-          <div className="text-[11px] font-mono font-medium text-ink-muted uppercase tracking-wider px-1">
-            Rewrite &amp; Cache
-          </div>
-          <div className="p-3 rounded-lg bg-surface-subtle border border-surface-border-subtle flex flex-col gap-2">
-            <div className="flex justify-between items-center text-[12px]">
-              <span className="text-ink-secondary">Semantic Cache</span>
-              <span className="font-mono text-emerald-700 font-semibold">{cacheHitRate}</span>
-            </div>
-            <div className="flex justify-between items-center text-[12px]">
-              <span className="text-ink-secondary">Query Expansion</span>
-              <span className="font-mono text-ink-primary font-medium">
-                {latestExpandedQuery ? 'Active' : 'Standby'}
-              </span>
-            </div>
-            {latestExpandedQuery && (
-              <div className="text-[11px] font-mono text-ink-secondary p-2 rounded bg-canvas-base border border-surface-border leading-snug break-words">
-                Rewritten: "{latestExpandedQuery}"
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Panel Footer */}
-      <div className="pt-3 border-t border-surface-border-subtle">
-        <div className="text-[10px] font-mono text-ink-muted text-center">
-          PageWise v2.4.1 · Precision RAG
-        </div>
-      </div>
-    </aside>
-  </>
-);
+      </aside>
+    </>
+  );
 };

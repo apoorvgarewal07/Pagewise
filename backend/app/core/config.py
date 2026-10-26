@@ -35,8 +35,8 @@ class Settings(BaseSettings):
     # Limits & Thresholds
     SEMANTIC_CACHE_THRESHOLD: float = float(os.getenv("SEMANTIC_CACHE_THRESHOLD", "0.92"))
     CONFIDENCE_THRESHOLD: float = float(os.getenv("CONFIDENCE_THRESHOLD", "0.35"))
-    MAX_FILE_SIZE_MB: int = int(os.getenv("MAX_FILE_SIZE_MB", "25"))
-    MAX_PAGES: int = int(os.getenv("MAX_PAGES", "150"))
+    MAX_FILE_SIZE_MB: int = int(os.getenv("MAX_FILE_SIZE_MB", "100"))
+    MAX_PAGES: int = int(os.getenv("MAX_PAGES", "3000"))
     
     # RAG params
     DEFAULT_CHUNK_SIZE: int = int(os.getenv("DEFAULT_CHUNK_SIZE", "600"))

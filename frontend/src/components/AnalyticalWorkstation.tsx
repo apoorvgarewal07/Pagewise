@@ -1,6 +1,31 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { DocumentCorpus, DocumentChunk, BoundingBox } from '../utils/ragEngine.ts';
 import { INITIAL_CHAT_MESSAGES } from '../data/corporaData.ts';
+import {
+  FileText,
+  CheckCircle2,
+  Check,
+  Copy,
+  Plus,
+  Compass,
+  Search,
+  Layers,
+  ChevronDown,
+  ChevronRight,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
+  ExternalLink,
+  Bookmark,
+  CheckCheck,
+  Zap,
+  Info,
+  XCircle,
+  MessageSquare,
+  ArrowUp
+} from 'lucide-react';
+import { GenerateButton } from './ui/generate-button.tsx';
+import { CornerButton } from './ui/corner-button.tsx';
 
 interface AnalyticalWorkstationProps {
   document: DocumentCorpus;
@@ -19,6 +44,7 @@ interface AnalyticalWorkstationProps {
   retrievalMode: string;
   onSelectRetrievalMode: (mode: string) => void;
   isProcessing?: boolean;
+  isRightPanelOpen?: boolean;
 }
 
 export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
@@ -27,11 +53,12 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
   onOpenBboxInspector,
   onAskQuestion,
   chatMessages,
-  selectedModel,
-  onSelectModel,
+  selectedModel: _selectedModel,
+  onSelectModel: _onSelectModel,
   retrievalMode,
   onSelectRetrievalMode,
-  isProcessing = false
+  isProcessing = false,
+  isRightPanelOpen = false
 }) => {
   const [inputText, setInputText] = useState('');
   const [copiedChunkId, setCopiedChunkId] = useState<string | null>(null);
@@ -143,7 +170,7 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
       s = s.replace(/\\text\{([^}]+)\}/g, '$1');
     }
 
-    // Subscripts: Fe_3C -> Fe₃C or X_{abc} -> X(abc)
+    // Subscripts
     const subMap: Record<string, string> = {
       '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
       '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉'
@@ -152,7 +179,7 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
     s = s.replace(/_\{([0-9])\}/g, (_, d) => subMap[d] || `_${d}`);
     s = s.replace(/_\{([^}]+)\}/g, '($1)');
 
-    // Superscripts: ^2 -> ², ^3 -> ³
+    // Superscripts
     const supMap: Record<string, string> = {
       '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
       '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹'
@@ -170,23 +197,16 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
 
   const normalizeMarkdownText = (raw: string): string => {
     let s = raw;
-    // 1. If an intro ending in colon is followed by a bullet, e.g. "contents: * **" -> "contents:\n\n- **"
     s = s.replace(/:\s*\*\s+/g, ':\n\n- ');
-    // 2. Inline bold bullets: " * **" preceded by non-newline -> "\n\n- **"
     s = s.replace(/([^\n])\s+\*\s+\*\*/g, '$1\n\n- **');
-    // 3. Double bold colon followed by asterisk bullet: ":** * " -> ":**\n\n- "
     s = s.replace(/:\*\*\s+\*\s+/g, ':**\n\n- ');
-    // 4. Inline bullet preceded by sentence endings like "]", ".", ")", quotes, backticks
     s = s.replace(/([\]\.\)\"'\`])\s+\*\s+/g, '$1\n\n- ');
-    // 5. Any standalone " * " with whitespace before and after
     s = s.replace(/([^\n])\s{2,}\*\s+/g, '$1\n\n- ');
-    // 6. Normalize "\n* " or "\n• " to "\n- "
     s = s.replace(/\n\s*[\*•]\s+/g, '\n- ');
     return s;
   };
 
   const renderFormattedInline = (text: string, keyPrefix: string | number) => {
-    // Split by inline code: `code`
     const codeParts = text.split(/(`[^`]+`)/g);
     return codeParts.map((cPart, cIdx) => {
       if (cPart.startsWith('`') && cPart.endsWith('`') && cPart.length > 2) {
@@ -194,14 +214,13 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
         return (
           <code
             key={`${keyPrefix}-c-${cIdx}`}
-            className="px-1.5 py-0.5 mx-0.5 rounded bg-surface-subtle border border-surface-border font-mono text-[11px] text-primary select-all"
+            className="px-1.5 py-0.5 mx-0.5 rounded bg-slate-900 border border-slate-750 font-mono text-[11px] text-sky-300 select-all"
           >
             {codeContent}
           </code>
         );
       }
 
-      // Split by bold: **bold**
       const boldParts = cPart.split(/(\*\*[^*]+\*\*)/g);
       if (boldParts.length > 1) {
         return (
@@ -211,7 +230,7 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
                 return (
                   <strong
                     key={`${keyPrefix}-b-${bIdx}`}
-                    className="font-semibold text-ink-primary"
+                    className="font-semibold text-white"
                   >
                     {bPart.slice(2, -2)}
                   </strong>
@@ -244,22 +263,22 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
+              const matchingChunk = document.chunks?.find(c => c.pageNumber === pageNum);
               onOpenBboxInspector({
                 pageNumber: pageNum,
-                sectionTitle: section || `Page ${pageNum} Reference`,
-                chunkText: `Document reference on Page ${pageNum}${section ? ` (${section})` : ''}`,
-                simScore: 0.95
+                sectionTitle: matchingChunk?.sectionTitle || section || `Page ${pageNum} Reference`,
+                chunkText: matchingChunk?.content || (section ? `Section: ${section}` : `Document citation on Page ${pageNum}`),
+                bbox: matchingChunk?.bbox,
+                simScore: matchingChunk?.denseSim || 0.95
               });
             }}
             title={`Jump to Page ${pageNum}${section ? ` - ${section}` : ''}`}
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 font-mono text-[11px] font-medium transition-all mx-1 my-0.5 align-baseline cursor-pointer group/pill shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-sky-950/80 hover:bg-sky-900/90 text-sky-300 hover:text-white border border-sky-800/80 font-mono text-[11px] font-medium transition-all mx-1 my-0.5 align-baseline cursor-pointer group/pill shadow-xs"
           >
-            <span className="material-symbols-outlined text-[12px] text-primary/80 group-hover/pill:text-primary">
-              description
-            </span>
-            <span className="font-semibold">Page {pageNum}</span>
+            <FileText className="w-3 h-3 text-sky-400" />
+            <span className="font-semibold text-white">Page {pageNum}</span>
             {section && (
-              <span className="text-[10px] text-ink-muted max-w-[130px] truncate hidden sm:inline">
+              <span className="text-[10px] text-slate-400 max-w-[130px] truncate hidden sm:inline">
                 · {section}
               </span>
             )}
@@ -278,7 +297,7 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
     const blocks = normalized.split(/\n\n+/).filter(b => b.trim().length > 0);
 
     return (
-      <div className="flex flex-col gap-3 text-ink-primary text-[13px] leading-relaxed">
+      <div className="flex flex-col gap-3 text-slate-200 text-[13px] leading-relaxed">
         {blocks.map((block, bIdx) => {
           const lines = block.split('\n').filter(l => l.trim().length > 0);
           return (
@@ -286,55 +305,49 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
               {lines.map((line, lIdx) => {
                 const trimmed = line.trim();
 
-                // Markdown Headings: ### Heading
                 const headingMatch = trimmed.match(/^#{1,4}\s+(.*)$/);
                 if (headingMatch) {
                   return (
                     <div
                       key={lIdx}
-                      className="text-[14px] font-semibold text-ink-primary tracking-tight mt-2 mb-1 flex items-center gap-1.5 border-b border-surface-border-subtle pb-1"
+                      className="text-[14px] font-semibold text-white tracking-tight mt-2 mb-1 flex items-center gap-1.5 border-b border-slate-800/80 pb-1.5"
                     >
-                      <span className="material-symbols-outlined text-[15px] text-primary">
-                        bookmark
-                      </span>
+                      <Bookmark className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />
                       <span>{renderTextWithCitations(headingMatch[1])}</span>
                     </div>
                   );
                 }
 
-                // Bullet Lists: - Item or * Item
                 const bulletMatch = trimmed.match(/^[-*•]\s+(.*)$/);
                 if (bulletMatch) {
                   return (
                     <div key={lIdx} className="flex items-start gap-2.5 pl-1 py-1 group/bullet">
-                      <div className="w-5 h-5 rounded-md bg-emerald-500/10 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 border border-emerald-500/20">
-                        <span className="material-symbols-outlined text-[13px]">check_small</span>
+                      <div className="w-4 h-4 rounded bg-sky-950/80 text-sky-400 flex items-center justify-center flex-shrink-0 mt-0.5 border border-sky-800/80">
+                        <Check className="w-3 h-3 text-sky-400" />
                       </div>
-                      <div className="flex-1 text-[13px] leading-relaxed text-ink-primary">
+                      <div className="flex-1 text-[13px] leading-relaxed text-slate-200">
                         {renderTextWithCitations(bulletMatch[1])}
                       </div>
                     </div>
                   );
                 }
 
-                // Numbered Lists: 1. Item or 1) Item
                 const numberMatch = trimmed.match(/^(\d+)[\.\)]\s+(.*)$/);
                 if (numberMatch) {
                   return (
                     <div key={lIdx} className="flex items-start gap-2.5 pl-1 py-1 group/number">
-                      <span className="w-5 h-5 rounded-md bg-primary/10 text-primary font-mono text-[11px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5 border border-primary/20">
+                      <span className="w-4 h-4 rounded bg-slate-900 text-sky-400 font-mono text-[10px] font-semibold flex items-center justify-center flex-shrink-0 mt-0.5 border border-slate-800">
                         {numberMatch[1]}
                       </span>
-                      <div className="flex-1 text-[13px] leading-relaxed text-ink-primary">
+                      <div className="flex-1 text-[13px] leading-relaxed text-slate-200">
                         {renderTextWithCitations(numberMatch[2])}
                       </div>
                     </div>
                   );
                 }
 
-                // Standard Paragraph
                 return (
-                  <p key={lIdx} className="whitespace-pre-line leading-relaxed text-[13px] text-ink-primary">
+                  <p key={lIdx} className="whitespace-pre-line leading-relaxed text-[13px] text-slate-200">
                     {renderTextWithCitations(line)}
                   </p>
                 );
@@ -347,72 +360,72 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
   };
 
   return (
-    <main className="relative pt-14 bg-background min-h-screen">
+    <main className="relative pt-14 bg-transparent min-h-screen">
       <div className="flex flex-col w-full pb-44">
         {/* Contextual Document Banner */}
-        <div className="w-full bg-surface-subtle border-b border-surface-border px-4 sm:px-8 py-3 shadow-2xs">
-          <div className="max-w-[760px] mx-auto flex items-center justify-between gap-3">
+        <div className="w-full bg-slate-950/80 backdrop-blur-md border-b border-slate-800 px-4 sm:px-8 py-3 shadow-md">
+          <div className="max-w-[820px] mx-auto flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-canvas-base border border-surface-border flex items-center justify-center text-primary flex-shrink-0 shadow-2xs">
-                <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+              <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 flex-shrink-0 shadow-xs">
+                <FileText className="w-4 h-4" />
               </div>
               <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="font-semibold text-[13px] text-ink-primary truncate max-w-[200px] sm:max-w-none">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-[13px] text-white truncate max-w-[200px] sm:max-w-none">
                     {document.filename}
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-mono font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 text-[10px] font-mono font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                     Ready
                   </span>
                 </div>
-                <div className="flex flex-wrap items-center gap-1.5 text-[10px] sm:text-[11px] font-mono text-ink-muted">
+                <div className="flex flex-wrap items-center gap-1.5 text-[10px] sm:text-[11px] font-mono text-slate-400">
                   <span>{document.totalPages} Pages</span>
                   <span>•</span>
                   <span>{document.chunksVectorized} Chunks</span>
                   <span className="hidden sm:inline">•</span>
-                  <span className="hidden sm:inline text-emerald-700 font-medium">Vector &amp; Sparse Synchronized</span>
+                  <span className="hidden sm:inline text-emerald-400 font-medium">Vector &amp; Sparse Synchronized</span>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                type="button"
+              <CornerButton
                 onClick={onNewDocumentClick}
-                className="h-7 px-2.5 rounded-md bg-canvas-base border border-surface-border hover:bg-surface-subtle text-ink-primary text-[11px] font-medium flex items-center gap-1 transition-colors shadow-2xs cursor-pointer"
+                accentColor="#38bdf8"
+                className="text-slate-950 font-bold px-3 py-1 text-[11px]"
+                showIcon={false}
               >
-                <span className="material-symbols-outlined text-[14px] text-primary">add</span>
-                <span className="hidden sm:inline">New Document</span>
-              </button>
+                New Document
+              </CornerButton>
             </div>
           </div>
         </div>
 
-        {/* Analytical Reading Track (Strictly Clamped to 760px) */}
-        <div className="w-full max-w-[760px] mx-auto px-4 sm:px-6 pt-6 flex flex-col gap-6">
+        {/* Analytical Reading Track */}
+        <div className="w-full max-w-[820px] mx-auto px-4 sm:px-6 pt-6 flex flex-col gap-6">
           {/* 1. Executive Synthesis Card */}
-          <div className="rounded-xl bg-canvas-base border border-surface-border p-5 shadow-2xs relative overflow-hidden">
+          <div className="rounded-xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/90 p-5 shadow-xl relative overflow-hidden">
             <div className="flex items-start justify-between gap-3 mb-2.5">
-              <div className="flex items-center gap-2 text-primary">
-                <span className="material-symbols-outlined text-[19px]">menu_book</span>
-                <span className="font-semibold text-[13px] uppercase tracking-wider text-ink-primary">
-                  Executive Synthesis
+              <div className="flex items-center gap-2 text-sky-400">
+                <Bookmark className="w-4 h-4" />
+                <span className="font-semibold text-xs tracking-wider uppercase text-white">
+                  EXECUTIVE SYNTHESIS
                 </span>
               </div>
-              <span className="text-[10px] font-mono font-medium text-ink-muted px-2 py-0.5 rounded bg-surface-subtle border border-surface-border">
+              <span className="text-[10px] font-mono font-medium text-slate-400 px-2 py-0.5 rounded bg-slate-900 border border-slate-800">
                 Auto-Indexed
               </span>
             </div>
 
-            <p className="text-[13px] text-ink-secondary leading-relaxed mb-4">
+            <p className="text-[13px] text-slate-300 leading-relaxed mb-4">
               {document.executiveSummary ||
                 'Document analyzed and indexed for hybrid retrieval and precision grounded Q&A.'}
             </p>
 
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-surface-border-subtle">
-              <span className="text-[10px] font-mono font-semibold text-ink-muted uppercase tracking-wider">
-                Grounded Anchors:
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/80">
+              <span className="text-[10px] font-mono font-semibold text-slate-400 uppercase tracking-wider">
+                GROUNDED ANCHORS:
               </span>
 
               {document.groundedAnchors?.map((anchor, idx) => (
@@ -428,15 +441,15 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
                       simScore: 0.98
                     })
                   }
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-subtle hover:bg-slate-100 border border-surface-border text-primary text-[11px] font-mono transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-sky-500/40 text-sky-300 hover:text-white text-[11px] font-mono transition-colors cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[13px]">description</span>
+                  <FileText className="w-3 h-3 text-sky-400" />
                   <span>{anchor.label}</span>
                 </button>
               ))}
 
-              <span className="text-[11px] font-mono font-medium text-emerald-700 ml-auto flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px]">verified</span>
+              <span className="text-[11px] font-mono font-medium text-emerald-400 ml-auto flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 100% Document Verified
               </span>
             </div>
@@ -445,15 +458,15 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
           {/* Preset Sample Questions */}
           {document.sampleQuestions && document.sampleQuestions.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 px-1 -mt-2">
-              <span className="text-[10px] font-mono text-ink-muted uppercase tracking-wider mr-1">
-                Suggested Prompts:
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mr-1">
+                SUGGESTED PROMPTS:
               </span>
               {document.sampleQuestions.map((q, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => onAskQuestion(q)}
-                  className="px-2.5 py-1 rounded-full bg-canvas-base hover:bg-surface-subtle border border-surface-border text-ink-secondary hover:text-ink-primary text-[11px] transition-colors truncate max-w-full cursor-pointer shadow-2xs"
+                  className="px-2.5 py-1 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-[11px] transition-colors truncate max-w-full cursor-pointer shadow-sm"
                 >
                   "{q}"
                 </button>
@@ -463,429 +476,452 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
 
           {/* Conversation History */}
           {chatMessages.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-surface-border p-8 text-center bg-surface-subtle/50 flex flex-col items-center justify-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                <span className="material-symbols-outlined text-[22px]">chat_bubble_outline</span>
+            <div className="rounded-xl border border-dashed border-slate-800 p-8 text-center bg-slate-950/60 backdrop-blur-md flex flex-col items-center justify-center gap-2">
+              <div className="w-10 h-10 rounded-lg bg-slate-900 border border-slate-800 text-sky-400 flex items-center justify-center">
+                <MessageSquare className="w-5 h-5" />
               </div>
-              <h3 className="font-medium text-[14px] text-ink-primary">Ask a question about this document</h3>
-              <p className="text-[12px] text-ink-muted max-w-sm">
+              <h3 className="font-semibold text-[14px] text-white">Ask a question about this document</h3>
+              <p className="text-[12px] text-slate-400 max-w-sm">
                 Pick a suggested prompt above or type your question below to retrieve grounded, verified answers with exact page citations.
               </p>
             </div>
           ) : (
             chatMessages.map(msg => {
-            if (msg.role === 'user') {
-              return (
-                <div key={msg.id} className="flex justify-end">
-                  <div className="max-w-[82%] rounded-2xl rounded-tr-sm bg-primary text-white px-4 py-3 shadow-2xs">
-                    <p className="text-[13px] leading-relaxed font-normal">{msg.content}</p>
-                    <div className="mt-1.5 flex justify-end items-center gap-1 text-[10px] font-mono text-white/70">
-                      <span>{msg.timestamp}</span>
-                      <span className="material-symbols-outlined text-[12px]">done_all</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            }
-
-            const res = msg.result;
-            if (!res) return null;
-
-            // Abstention / Guardrail Triggered State
-            if (!res.isGrounded) {
-              return (
-                <div key={msg.id} className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2 pl-1">
-                    <div className="w-5 h-5 rounded-md bg-amber-500 text-white flex items-center justify-center flex-shrink-0 shadow-2xs">
-                      <span className="material-symbols-outlined text-[13px]">shield</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-canvas-base border border-surface-border text-[11px] font-mono text-ink-secondary shadow-2xs">
-                      <span className="material-symbols-outlined text-[12px] text-amber-600">gavel</span>
-                      <span className="text-ink-muted">Filter Triggered:</span>
-                      <span className="text-ink-primary font-medium">
-                        {res.filterTriggered || 'Strict Verification Threshold'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl bg-canvas-base border border-surface-border p-5 shadow-2xs flex flex-col gap-4">
-                    {/* Notice Banner */}
-                    <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200/90 flex items-start gap-3.5 shadow-2xs">
-                      <div className="w-8 h-8 rounded-lg bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-2xs">
-                        <span className="material-symbols-outlined text-[18px]">info</span>
+              if (msg.role === 'user') {
+                return (
+                  <div key={msg.id} className="flex justify-end pt-2">
+                    <div className="max-w-[85%] sm:max-w-[75%] rounded-xl bg-sky-950/70 text-white p-3.5 sm:p-4 shadow-lg border border-sky-850">
+                      <p className="text-[13px] leading-relaxed font-normal whitespace-pre-wrap">{msg.content}</p>
+                      <div className="mt-2 flex justify-end items-center gap-1.5 text-[10px] font-mono text-sky-300">
+                        <span>{msg.timestamp}</span>
+                        <CheckCheck className="w-3.5 h-3.5 text-sky-400" />
                       </div>
-                      <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                        <h4 className="font-semibold text-[13px] text-ink-primary">
-                          Information Not Found in Active Document
-                        </h4>
-                        <div className="text-[13px] text-ink-secondary leading-relaxed">
-                          {renderSynthesisText(res.synthesisText)}
+                    </div>
+                  </div>
+                );
+              }
+
+              const res = msg.result;
+              if (!res) return null;
+
+              // Abstention / Guardrail Triggered State
+              if (!res.isGrounded) {
+                return (
+                  <div key={msg.id} className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2 pl-1">
+                      <div className="w-5 h-5 rounded bg-amber-500 text-slate-950 flex items-center justify-center flex-shrink-0 shadow-xs">
+                        <ShieldAlert className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-300 shadow-xs">
+                        <span className="text-slate-500 uppercase tracking-wider text-[10px]">FILTER TRIGGERED:</span>
+                        <span className="text-amber-400 font-medium">
+                          {res.filterTriggered || 'Strict Verification Threshold'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl bg-slate-950/80 backdrop-blur-xl border border-slate-800 p-5 shadow-xl flex flex-col gap-4">
+                      {/* Notice Banner */}
+                      <div className="p-4 rounded-lg bg-amber-950/40 border border-amber-800/60 flex items-start gap-3 shadow-xs">
+                        <div className="w-7 h-7 rounded-lg bg-amber-900/60 border border-amber-700/80 text-amber-300 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Info className="w-4 h-4" />
+                        </div>
+                        <div className="flex flex-col gap-1 flex-1 min-w-0">
+                          <h4 className="font-semibold text-[13px] text-amber-100">
+                            Information Not Found in Active Document
+                          </h4>
+                          <div className="text-[13px] text-amber-200/90 leading-relaxed">
+                            {renderSynthesisText(res.synthesisText)}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Sub-threshold Chunk Reference */}
+                      {res.subThresholdChunk && (
+                        <div className="flex flex-col gap-1.5">
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                            Nearest Available Passage (Sub-threshold)
+                          </span>
+                          <div
+                            onClick={() =>
+                              onOpenBboxInspector({
+                                pageNumber: res.subThresholdChunk?.pageNumber || 51,
+                                sectionTitle: res.subThresholdChunk?.sectionTitle || 'Forward-Looking Risks',
+                                chunkText:
+                                  res.subThresholdChunk?.content ||
+                                  'General macroeconomic volatility and risks.',
+                                bbox: res.subThresholdChunk?.bbox,
+                                simScore: res.subThresholdChunk?.sim || 0.48
+                              })
+                            }
+                            className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-sky-500/40 flex items-center justify-between gap-3 text-[11px] font-mono cursor-pointer transition-colors"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <FileText className="w-3.5 h-3.5 text-slate-400" />
+                              <span className="text-slate-200 font-medium truncate">
+                                Page {res.subThresholdChunk.pageNumber} · {res.subThresholdChunk.sectionTitle}
+                              </span>
+                              <span className="px-1.5 py-0.5 rounded bg-rose-950/80 border border-rose-800 text-rose-300 text-[10px] font-semibold">
+                                {res.subThresholdChunk.sim} Low Sim
+                              </span>
+                            </div>
+                            <span className="text-slate-400 text-[10px] flex-shrink-0">
+                              Filtered out by strict threshold (≥ 0.70)
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Quality Strip (Amber/Red Status) */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80 text-[11px] font-mono">
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-800 text-rose-300 font-medium">
+                            <XCircle className="w-3.5 h-3.5 text-rose-400" />
+                            Unverified / Grounding Absent
+                          </span>
+                          <span className="text-slate-400 text-[10px]">Latency: {res.latencyMs}ms</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-slate-300">
+                          <span className="text-slate-400">Confidence:</span>
+                          <div className="w-16 h-1.5 rounded-full bg-slate-800 overflow-hidden flex">
+                            <div
+                              className="bg-rose-500 h-full"
+                              style={{ width: `${res.confidence}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-rose-400 font-semibold">{res.confidence}%</span>
                         </div>
                       </div>
                     </div>
+                  </div>
+                );
+              }
 
-                    {/* Sub-threshold Chunk Reference */}
-                    {res.subThresholdChunk && (
-                      <div className="flex flex-col gap-1.5">
-                        <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted font-semibold">
-                          Nearest Available Passage (Sub-threshold)
+              // High-Confidence Grounded AI Response
+              return (
+                <div key={msg.id} className="flex flex-col gap-2">
+                  {/* Search Query Rewrite & Engine Badge Row */}
+                  <div className="flex items-center justify-between gap-2 px-1">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-5 h-5 rounded-md bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center flex-shrink-0">
+                        <Compass className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-300 shadow-xs truncate">
+                        <span className="text-slate-500 uppercase tracking-wider text-[10px]">EXPANDED QUERY:</span>
+                        <span className="text-white font-medium truncate">"{res.expandedQuery}"</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-[10px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded-md border border-slate-800 hidden sm:inline">
+                        {res.latencyMs}ms
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(res.synthesisText);
+                          setCopiedChunkId(msg.id);
+                          setTimeout(() => setCopiedChunkId(null), 2000);
+                        }}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white text-[10px] font-mono transition-colors shadow-xs cursor-pointer"
+                        title="Copy full response"
+                      >
+                        {copiedChunkId === msg.id ? (
+                          <Check className="w-3 h-3 text-emerald-400" />
+                        ) : (
+                          <Copy className="w-3 h-3 text-slate-400" />
+                        )}
+                        <span className="hidden sm:inline">{copiedChunkId === msg.id ? 'Copied' : 'Copy'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Main Evidence Container */}
+                  <div className="rounded-xl bg-slate-950/85 backdrop-blur-xl border border-slate-800/90 p-5 shadow-xl flex flex-col gap-4">
+                    {/* Dynamic Synthesis Body */}
+                    {renderSynthesisText(res.synthesisText)}
+
+                    {/* Optional Metrics Grid */}
+                    {res.metrics && res.metrics.length > 0 && (
+                      <div className="p-3.5 rounded-lg bg-slate-900/80 border border-slate-800 flex flex-col gap-2">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                          Document Metrics &amp; Indicators
                         </span>
-                        <div
-                          onClick={() =>
-                            onOpenBboxInspector({
-                              pageNumber: res.subThresholdChunk?.pageNumber || 51,
-                              sectionTitle: res.subThresholdChunk?.sectionTitle || 'Forward-Looking Risks',
-                              chunkText:
-                                res.subThresholdChunk?.content ||
-                                'General macroeconomic volatility and risks.',
-                              bbox: res.subThresholdChunk?.bbox,
-                              simScore: res.subThresholdChunk?.sim || 0.48
-                            })
-                          }
-                          className="p-2.5 rounded-lg bg-surface-subtle border border-surface-border hover:border-primary/40 flex items-center justify-between gap-3 text-[11px] font-mono cursor-pointer transition-colors"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="material-symbols-outlined text-[15px] text-ink-muted">
-                              description
-                            </span>
-                            <span className="text-ink-primary font-medium truncate">
-                              Page {res.subThresholdChunk.pageNumber} · {res.subThresholdChunk.sectionTitle}
-                            </span>
-                            <span className="px-1.5 py-0.5 rounded bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-semibold">
-                              {res.subThresholdChunk.sim} Low Sim
-                            </span>
-                          </div>
-                          <span className="text-ink-muted text-[10px] flex-shrink-0">
-                            Filtered out by strict threshold (≥ 0.70)
-                          </span>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 mt-0.5">
+                          {res.metrics.map((m, i) => (
+                            <div
+                              key={i}
+                              className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 flex flex-col"
+                            >
+                              <span className="text-[11px] text-slate-400">{m.label}</span>
+                              <span className="text-[17px] font-bold text-white mt-0.5">
+                                {m.value}
+                              </span>
+                              <span className="text-[11px] font-mono text-emerald-400 font-medium">
+                                {m.yoy}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}
 
-                    {/* Quality Strip (Amber/Red Status) */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-surface-border-subtle text-[11px] font-mono">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 font-medium">
-                          <span className="material-symbols-outlined text-[13px]">cancel</span>
-                          Unverified / Grounding Absent
-                        </span>
-                        <span className="text-ink-muted text-[10px]">Latency: {res.latencyMs}ms</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-ink-secondary">
-                        <span className="text-ink-muted">Confidence:</span>
-                        <div className="w-14 h-1.5 rounded-full bg-slate-200 overflow-hidden flex">
-                          <div
-                            className="bg-rose-500 h-full"
-                            style={{ width: `${res.confidence}%` }}
-                          ></div>
+                    {/* Optional Key Factors */}
+                    {res.keyFactors && res.keyFactors.length > 0 && (
+                      <ul className="list-none flex flex-col gap-2 pl-0.5">
+                        {res.keyFactors.map((factor, fIdx) => (
+                          <li key={fIdx} className="flex items-start gap-2 text-slate-200 text-[13px]">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                            <span>
+                              <strong className="text-white font-semibold">
+                                {factor.title}:
+                              </strong>{' '}
+                              {factor.desc}
+                              {factor.page && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    onOpenBboxInspector({
+                                      pageNumber: factor.page,
+                                      sectionTitle: factor.title,
+                                      chunkText: factor.desc,
+                                      simScore: 0.92
+                                    })
+                                  }
+                                  className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-sky-950/80 border border-sky-800/80 text-sky-300 font-mono text-[11px] hover:bg-sky-900 transition-colors ml-1 align-baseline cursor-pointer"
+                                >
+                                  Page {factor.page}
+                                </button>
+                              )}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {/* Inline Chart Component */}
+                    {res.chartData && (
+                      <div className="p-3.5 rounded-lg bg-slate-900/80 border border-slate-800 flex flex-col gap-2">
+                        <div className="flex items-center justify-between text-slate-400 text-[10px] font-mono uppercase tracking-wider">
+                          <span className="font-semibold">YoY Quarterly Trajectory ($ Billions)</span>
+                          <span>Source: SEC Filing 10-Q</span>
                         </div>
-                        <span className="text-rose-700 font-semibold">{res.confidence}%</span>
+                        <div className="h-16 w-full flex items-end gap-3 pt-2">
+                          {res.chartData.map((item, i) => (
+                            <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                              <div
+                                className={`w-full rounded-t transition-all ${
+                                  item.active ? 'bg-sky-400' : 'bg-slate-800'
+                                }`}
+                                style={{ height: `${item.heightPercent}%` }}
+                              ></div>
+                              <span
+                                className={`text-[10px] font-mono ${
+                                  item.active ? 'text-sky-400 font-semibold' : 'text-slate-400'
+                                }`}
+                              >
+                                {item.quarter}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Verifiable Source Citation Cards */}
+                    <div className="flex flex-col gap-2 pt-1 border-t border-slate-800">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                          Retrieved Ground-Truth Sources ({res.matchedChunks.length} Chunks)
+                        </span>
+                        <span className="text-[10px] font-mono text-emerald-400 font-medium">
+                          Cosine Distance ≤ 0.18
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                        {res.matchedChunks.map(chunk => (
+                          <div
+                            key={chunk.id}
+                            onClick={() =>
+                              onOpenBboxInspector({
+                                pageNumber: chunk.pageNumber,
+                                sectionTitle: chunk.sectionTitle,
+                                chunkText: chunk.content,
+                                bbox: chunk.bbox,
+                                simScore: chunk.sim
+                              })
+                            }
+                            className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-900 transition-all flex flex-col justify-between gap-2 group cursor-pointer shadow-sm"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-sky-950/80 text-sky-400 border border-sky-800/80">
+                                <FileText className="w-3 h-3 text-sky-400" />
+                                <span className="font-semibold text-[11px] font-mono">
+                                  Page {chunk.pageNumber}
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded-md bg-emerald-950/80 border border-emerald-800/80 text-emerald-400">
+                                {chunk.sim} Match
+                              </span>
+                            </div>
+
+                            <p className="text-[12px] text-slate-300 line-clamp-3 leading-relaxed">
+                              {chunk.content}
+                            </p>
+
+                            <div className="flex items-center justify-between pt-1.5 border-t border-slate-800 text-[10px] font-mono">
+                              <span className="text-slate-400 truncate max-w-[140px]">
+                                {chunk.sectionTitle}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    handleCopyCitation(chunk.id, chunk.content);
+                                  }}
+                                  className="w-5 h-5 rounded hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                  title="Copy citation passage"
+                                  aria-label="Copy citation passage"
+                                >
+                                  {copiedChunkId === chunk.id ? (
+                                    <Check className="w-3 h-3 text-emerald-400" />
+                                  ) : (
+                                    <Copy className="w-3 h-3 text-slate-400" />
+                                  )}
+                                </button>
+                                <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-sky-400 transition-colors" />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
+
+                    {/* Quality Strip */}
+                    <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 text-[11px] font-mono">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 font-medium">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                          Verified Evidence
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-900/80 border border-slate-800 text-slate-300">
+                          <Zap className="w-3 h-3 text-amber-400" />
+                          {res.isCacheHit ? 'Cache Hit · ' : 'Retrieved · '}{res.latencyMs}ms
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-4 text-slate-300">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-slate-400">Confidence:</span>
+                          <div className="w-14 h-1.5 rounded-full bg-slate-800 overflow-hidden flex">
+                            <div
+                              className="bg-emerald-500 h-full"
+                              style={{ width: `${res.confidence}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-white font-semibold">{res.confidence}%</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-slate-400">Faithfulness:</span>
+                          <span className="text-emerald-400 font-semibold">{res.faithfulness}%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Collapsible Telemetry */}
+                    <details className="group cursor-pointer border-t border-slate-800 pt-2">
+                      <summary className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-slate-400 hover:text-white transition-colors py-0.5 list-none">
+                        <span className="flex items-center gap-1 font-semibold">
+                          <ChevronRight className="w-3.5 h-3.5 group-open:rotate-90 transition-transform" />
+                          Technical Telemetry · pw_sess_9f82c1a
+                        </span>
+                        <span className="text-slate-400">BM25 Rank #1 · RRF 0.884</span>
+                      </summary>
+
+                      <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 mt-1.5 text-[11px] font-mono text-slate-300 flex flex-col gap-1">
+                        <div className="flex justify-between">
+                          <span>Vector Dense Score:</span>
+                          <span className="text-white font-medium">
+                            {res.technicalTelemetry.denseScore}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Sparse Lexical Score (BM25):</span>
+                          <span className="text-white font-medium">
+                            {res.technicalTelemetry.bm25Score} (Rank 1)
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Reciprocal Rank Fusion (k=60):</span>
+                          <span className="text-white font-medium">
+                            {res.technicalTelemetry.rrfScore}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Cohere Re-ranker Cosine:</span>
+                          <span className="text-emerald-400 font-medium">
+                            {res.technicalTelemetry.cohereCosine}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Token Budget Used:</span>
+                          <span className="text-white font-medium">
+                            {res.technicalTelemetry.promptTokens} Prompt / {res.technicalTelemetry.genTokens}{' '}
+                            Generation
+                          </span>
+                        </div>
+                      </div>
+                    </details>
                   </div>
                 </div>
               );
-            }
+            })
+          )}
 
-            // High-Confidence Grounded AI Response
-            return (
-              <div key={msg.id} className="flex flex-col gap-2">
-                {/* Search Query Rewrite Badge */}
-                <div className="flex items-center gap-2 pl-1">
-                  <div className="w-5 h-5 rounded-md bg-primary-container text-white flex items-center justify-center flex-shrink-0 shadow-2xs">
-                    <span className="material-symbols-outlined text-[13px]">auto_awesome</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-canvas-base border border-surface-border text-[11px] font-mono text-ink-secondary shadow-2xs">
-                    <span className="material-symbols-outlined text-[12px] text-primary">
-                      travel_explore
-                    </span>
-                    <span className="text-ink-muted">Expanded Query:</span>
-                    <span className="text-ink-primary font-medium">"{res.expandedQuery}"</span>
-                  </div>
+          {isProcessing && (
+            <div className="flex flex-col gap-2 animate-in fade-in duration-200">
+              <div className="flex items-center gap-2 pl-1">
+                <div className="w-5 h-5 rounded-md bg-slate-900/80 border border-slate-800 text-sky-400 flex items-center justify-center flex-shrink-0 animate-pulse">
+                  <Search className="w-3 h-3 text-sky-400" />
                 </div>
-
-                {/* Main Evidence Container */}
-                <div className="rounded-xl bg-canvas-base border border-surface-border p-5 shadow-2xs flex flex-col gap-4">
-                  {/* Dynamic Synthesis Body */}
-                  {renderSynthesisText(res.synthesisText)}
-
-                  {/* Optional Metrics Grid */}
-                  {res.metrics && res.metrics.length > 0 && (
-                    <div className="p-3.5 rounded-lg bg-surface-subtle border border-surface-border flex flex-col gap-2">
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted font-semibold">
-                        Document Metrics & Indicators
-                      </span>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 mt-0.5">
-                        {res.metrics.map((m, i) => (
-                          <div
-                            key={i}
-                            className="p-2.5 rounded-md bg-canvas-base border border-surface-border flex flex-col"
-                          >
-                            <span className="text-[11px] text-ink-muted">{m.label}</span>
-                            <span className="text-[18px] font-semibold text-ink-primary mt-0.5">
-                              {m.value}
-                            </span>
-                            <span className="text-[11px] font-mono text-emerald-700 font-medium">
-                              {m.yoy}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Optional Key Factors */}
-                  {res.keyFactors && res.keyFactors.length > 0 && (
-                    <ul className="list-none flex flex-col gap-2 pl-0.5">
-                      {res.keyFactors.map((factor, fIdx) => (
-                        <li key={fIdx} className="flex items-start gap-2">
-                          <span className="material-symbols-outlined text-[16px] text-emerald-600 mt-0.5 flex-shrink-0">
-                            check_circle
-                          </span>
-                          <span>
-                            <strong className="text-ink-primary font-semibold">
-                              {factor.title}:
-                            </strong>{' '}
-                            {factor.desc}
-                            {factor.page && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  onOpenBboxInspector({
-                                    pageNumber: factor.page,
-                                    sectionTitle: factor.title,
-                                    chunkText: factor.desc,
-                                    simScore: 0.92
-                                  })
-                                }
-                                className="inline-flex items-center px-1.5 py-0.5 rounded bg-surface-subtle border border-surface-border text-primary font-mono text-[11px] hover:bg-slate-100 transition-colors ml-1 align-baseline cursor-pointer"
-                              >
-                                Page {factor.page}
-                              </button>
-                            )}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  {/* Inline Chart Component */}
-                  {res.chartData && (
-                    <div className="p-3.5 rounded-lg bg-surface-subtle border border-surface-border flex flex-col gap-2">
-                      <div className="flex items-center justify-between text-ink-muted text-[10px] font-mono uppercase tracking-wider">
-                        <span className="font-semibold">YoY Quarterly Trajectory ($ Billions)</span>
-                        <span>Source: SEC Filing 10-Q</span>
-                      </div>
-                      <div className="h-16 w-full flex items-end gap-3 pt-2">
-                        {res.chartData.map((item, i) => (
-                          <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
-                            <div
-                              className={`w-full rounded-t transition-all ${
-                                item.active ? 'bg-primary shadow-xs' : 'bg-slate-200'
-                              }`}
-                              style={{ height: `${item.heightPercent}%` }}
-                            ></div>
-                            <span
-                              className={`text-[10px] font-mono ${
-                                item.active ? 'text-primary font-semibold' : 'text-ink-muted'
-                              }`}
-                            >
-                              {item.quarter}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Verifiable Source Citation Cards */}
-                  <div className="flex flex-col gap-2 pt-1 border-t border-surface-border-subtle">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted font-semibold">
-                        Retrieved Ground-Truth Sources ({res.matchedChunks.length} Chunks)
-                      </span>
-                      <span className="text-[10px] font-mono text-emerald-700 font-medium">
-                        Cosine Distance ≤ 0.18
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                      {res.matchedChunks.map(chunk => (
-                        <div
-                          key={chunk.id}
-                          onClick={() =>
-                            onOpenBboxInspector({
-                              pageNumber: chunk.pageNumber,
-                              sectionTitle: chunk.sectionTitle,
-                              chunkText: chunk.content,
-                              bbox: chunk.bbox,
-                              simScore: chunk.sim
-                            })
-                          }
-                          className="p-2.5 rounded-lg bg-surface-subtle border border-surface-border hover:border-primary/40 hover:bg-slate-100 transition-all flex flex-col justify-between gap-1.5 group cursor-pointer shadow-2xs"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-1 text-primary">
-                              <span className="material-symbols-outlined text-[14px]">description</span>
-                              <span className="font-semibold text-[11px] text-ink-primary">
-                                Page {chunk.pageNumber}
-                              </span>
-                            </div>
-                            <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-700">
-                              {chunk.sim} Sim
-                            </span>
-                          </div>
-
-                          <p className="text-[11px] text-ink-secondary line-clamp-2 leading-relaxed">
-                            {chunk.content}
-                          </p>
-
-                          <div className="flex items-center justify-between pt-1">
-                            <span className="text-[10px] font-mono text-ink-muted truncate">
-                              {chunk.sectionTitle}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={e => {
-                                e.stopPropagation();
-                                handleCopyCitation(chunk.id, chunk.content);
-                              }}
-                              className="w-5 h-5 rounded hover:bg-white text-ink-muted hover:text-ink-primary flex items-center justify-center transition-colors cursor-pointer"
-                              title="Copy exact citation"
-                              aria-label="Copy exact citation"
-                            >
-                              <span className="material-symbols-outlined text-[12px]">
-                                {copiedChunkId === chunk.id ? 'check' : 'content_copy'}
-                              </span>
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Quality Strip */}
-                  <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-surface-border-subtle text-[11px] font-mono">
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-medium">
-                        <span className="material-symbols-outlined text-[13px]">verified</span>
-                        Verified Evidence
-                      </span>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-subtle border border-surface-border text-ink-secondary">
-                        <span className="material-symbols-outlined text-[13px] text-amber-500">bolt</span>
-                        {res.isCacheHit ? 'Cache Hit · ' : 'Retrieved · '}{res.latencyMs}ms
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-4 text-ink-secondary">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-ink-muted">Confidence:</span>
-                        <div className="w-14 h-1.5 rounded-full bg-slate-200 overflow-hidden flex">
-                          <div
-                            className="bg-emerald-600 h-full"
-                            style={{ width: `${res.confidence}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-ink-primary font-semibold">{res.confidence}%</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-ink-muted">Faithfulness:</span>
-                        <span className="text-emerald-700 font-semibold">{res.faithfulness}%</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Collapsible Telemetry */}
-                  <details className="group cursor-pointer border-t border-surface-border-subtle pt-2">
-                    <summary className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-ink-muted hover:text-ink-primary transition-colors py-0.5 list-none">
-                      <span className="flex items-center gap-1 font-semibold">
-                        <span className="material-symbols-outlined text-[13px] group-open:rotate-90 transition-transform">
-                          chevron_right
-                        </span>
-                        Technical Telemetry · pw_sess_9f82c1a
-                      </span>
-                      <span className="text-ink-muted">BM25 Rank #1 · RRF 0.884</span>
-                    </summary>
-
-                    <div className="p-2.5 rounded bg-surface-subtle border border-surface-border mt-1.5 text-[11px] font-mono text-ink-secondary flex flex-col gap-1">
-                      <div className="flex justify-between">
-                        <span>Vector Dense Score:</span>
-                        <span className="text-ink-primary font-medium">
-                          {res.technicalTelemetry.denseScore}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Sparse Lexical Score (BM25):</span>
-                        <span className="text-ink-primary font-medium">
-                          {res.technicalTelemetry.bm25Score} (Rank 1)
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Reciprocal Rank Fusion (k=60):</span>
-                        <span className="text-ink-primary font-medium">
-                          {res.technicalTelemetry.rrfScore}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Cohere Re-ranker Cosine:</span>
-                        <span className="text-emerald-700 font-medium">
-                          {res.technicalTelemetry.cohereCosine}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Token Budget Used:</span>
-                        <span className="text-ink-primary font-medium">
-                          {res.technicalTelemetry.promptTokens} Prompt / {res.technicalTelemetry.genTokens}{' '}
-                          Generation
-                        </span>
-                      </div>
-                    </div>
-                  </details>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/90 border border-slate-800 text-[11px] font-mono text-slate-300 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping mr-1"></span>
+                  <span className="text-white font-medium">Hybrid Search & Grounded Verification...</span>
                 </div>
               </div>
-            );
-          })
-        )}
-
-        {isProcessing && (
-          <div className="flex flex-col gap-2 animate-in fade-in duration-200">
-            <div className="flex items-center gap-2 pl-1">
-              <div className="w-5 h-5 rounded-md bg-primary-container text-white flex items-center justify-center flex-shrink-0 animate-pulse shadow-2xs">
-                <span className="material-symbols-outlined text-[13px]">auto_awesome</span>
-              </div>
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-canvas-base border border-surface-border text-[11px] font-mono text-ink-secondary shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-primary animate-ping mr-1"></span>
-                <span className="text-ink-primary font-medium">Hybrid Search & Grounded Verification...</span>
+              <div className="rounded-xl bg-slate-900/90 border border-slate-800 p-4 shadow-sm flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-sky-400 animate-bounce"></div>
+                    <div className="w-2 h-2 rounded-full bg-sky-400 animate-bounce [animation-delay:0.2s]"></div>
+                    <div className="w-2 h-2 rounded-full bg-sky-400 animate-bounce [animation-delay:0.4s]"></div>
+                  </div>
+                  <span className="text-[12px] font-mono text-slate-300">
+                    Retrieving passages via BM25 + Gemini vectors, re-ranking evidence, and verifying answer...
+                  </span>
+                </div>
               </div>
             </div>
-            <div className="rounded-xl bg-canvas-base border border-surface-border p-5 shadow-2xs flex flex-col gap-3">
-              <div className="flex items-center gap-3">
-                <div className="flex gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-primary animate-bounce"></div>
-                  <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:0.2s]"></div>
-                  <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:0.4s]"></div>
-                </div>
-                <span className="text-[12px] font-mono text-ink-muted">
-                  Retrieving passages via BM25 + Gemini vectors, re-ranking evidence, and verifying answer...
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-
+          )}
+          <div ref={messagesEndRef} />
         </div>
 
-        {/* Floating Query Composer (Clamped over the reading track) */}
-        <div className="fixed bottom-0 left-0 md:left-[240px] right-0 md:right-[280px] p-4 pointer-events-none z-30">
-          <div className="max-w-[760px] mx-auto pointer-events-auto">
-            <div className="rounded-2xl bg-canvas-base/95 backdrop-blur-xl border border-surface-border p-3 shadow-xl flex flex-col gap-2">
+        {/* Floating Query Composer (Responsive and centered) */}
+        <div
+          className={`fixed bottom-0 left-0 right-0 ${
+            isRightPanelOpen ? 'lg:right-[280px]' : 'right-0'
+          } p-3 sm:p-4 pointer-events-none z-30 transition-all duration-200`}
+        >
+          <div className="max-w-[820px] mx-auto pointer-events-auto">
+            <div className="rounded-2xl bg-slate-950/95 backdrop-blur-2xl border border-slate-800/90 p-3 shadow-[0_12px_48px_rgba(0,0,0,0.85),0_0_0_1px_rgba(56,189,248,0.15)] flex flex-col gap-2.5">
               {/* Dock Control Badges */}
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-1.5 relative">
                   {/* Single Active LLM Engine */}
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-surface-subtle border border-surface-border text-ink-primary font-mono text-[11px]" title="Gemini 2.5 Flash (Google GenAI)">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-700/80 text-sky-300 font-mono text-[11px] shadow-sm" title="Gemini 2.5 Flash (Google GenAI)">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ring-2 ring-emerald-500/30"></span>
                     <span className="font-medium">Gemini 2.5 Flash</span>
                   </div>
 
@@ -894,15 +930,15 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowModeMenu(!showModeMenu)}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-subtle hover:bg-slate-100 border border-surface-border text-ink-secondary hover:text-ink-primary font-mono text-[11px] transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/90 hover:bg-slate-800/90 border border-slate-700/80 hover:border-slate-600 text-slate-200 hover:text-white font-mono text-[11px] transition-colors cursor-pointer shadow-sm"
                     >
-                      <span className="material-symbols-outlined text-[13px]">layers</span>
+                      <Layers className="w-3 h-3 text-slate-400" />
                       <span>{retrievalMode}</span>
-                      <span className="material-symbols-outlined text-[12px]">expand_more</span>
+                      <ChevronDown className="w-3 h-3 text-slate-400" />
                     </button>
 
                     {showModeMenu && (
-                      <div className="absolute bottom-full mb-1 left-0 w-56 bg-canvas-base border border-surface-border rounded-lg shadow-lg py-1 z-50 text-[11px] font-mono">
+                      <div className="absolute bottom-full mb-1.5 left-0 w-64 bg-slate-900/98 backdrop-blur-xl border border-slate-700 rounded-xl shadow-2xl py-1.5 z-50 text-[11px] font-mono">
                         {[
                           'Hybrid Search (Dense + BM25)',
                           'Dense Vector Only (1536d)',
@@ -915,13 +951,13 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
                               onSelectRetrievalMode(mode);
                               setShowModeMenu(false);
                             }}
-                            className={`w-full text-left px-3 py-1.5 hover:bg-surface-subtle flex items-center justify-between ${
-                              retrievalMode === mode ? 'text-primary font-semibold' : 'text-ink-secondary'
+                            className={`w-full text-left px-3 py-1.5 hover:bg-slate-800 hover:text-white flex items-center justify-between cursor-pointer transition-colors ${
+                              retrievalMode === mode ? 'text-sky-400 font-semibold bg-sky-950/40' : 'text-slate-300'
                             }`}
                           >
                             <span>{mode}</span>
                             {retrievalMode === mode && (
-                              <span className="material-symbols-outlined text-[14px]">check</span>
+                              <Check className="w-3.5 h-3.5 text-sky-400" />
                             )}
                           </button>
                         ))}
@@ -930,14 +966,13 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
                   </div>
                 </div>
 
-                <div className="font-mono text-[10px] text-ink-muted hidden sm:flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[12px]">keyboard</span>
+                <div className="font-mono text-[10px] text-slate-400 hidden sm:flex items-center gap-1">
                   <span>Enter to submit · Shift+Enter for newline</span>
                 </div>
               </div>
 
-              {/* Input Area */}
-              <div className="flex items-end gap-2 px-1">
+              {/* Text Box Input Well */}
+              <div className="flex items-end gap-2 p-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 focus-within:border-sky-500/80 focus-within:ring-2 focus-within:ring-sky-500/25 transition-all shadow-inner">
                 <textarea
                   ref={textareaRef}
                   value={inputText}
@@ -946,7 +981,7 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
                   placeholder="Ask anything about this document..."
                   rows={1}
                   style={{ minHeight: '38px', maxHeight: '120px' }}
-                  className="flex-1 bg-transparent border-0 outline-none resize-none text-[13px] text-ink-primary placeholder:text-ink-muted py-1.5 px-1 focus:ring-0 leading-normal"
+                  className="flex-1 bg-transparent border-0 outline-none resize-none text-[13px] text-white placeholder:text-slate-400 py-1.5 px-2 focus:ring-0 leading-normal selection:bg-sky-500/30 selection:text-white"
                 />
 
                 <div className="flex items-center gap-1.5 flex-shrink-0 mb-0.5">
@@ -958,26 +993,20 @@ export const AnalyticalWorkstation: React.FC<AnalyticalWorkstationProps> = ({
                         setInputText(defaultPrompt);
                       }
                     }}
-                    className="w-8 h-8 rounded-lg bg-surface-subtle border border-surface-border hover:bg-slate-100 text-ink-secondary hover:text-ink-primary flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
+                    className="w-8 h-8 rounded-lg bg-slate-800/90 border border-slate-700/80 hover:bg-slate-700 hover:border-slate-600 text-sky-400 hover:text-sky-300 flex items-center justify-center transition-all shadow-sm cursor-pointer"
                     title="Auto-fill sample prompt"
                     aria-label="Auto-fill sample prompt"
                   >
-                    <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+                    <Sparkles className="w-3.5 h-3.5 text-sky-400" />
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={handleSubmit}
+                  <GenerateButton
+                    hue={210}
+                    isGenerating={isProcessing}
                     disabled={!inputText.trim() || isProcessing}
-                    className={`h-8 px-3 rounded-lg font-medium text-[12px] flex items-center gap-1 transition-all ${
-                      inputText.trim() && !isProcessing
-                        ? 'bg-primary hover:bg-primary/95 text-white shadow-xs cursor-pointer'
-                        : 'bg-surface-container border border-surface-border text-ink-muted cursor-not-allowed'
-                    }`}
-                  >
-                    <span>Send</span>
-                    <span className="material-symbols-outlined text-[15px]">arrow_upward</span>
-                  </button>
+                    onClick={handleSubmit}
+                    className="scale-90"
+                  />
                 </div>
               </div>
             </div>

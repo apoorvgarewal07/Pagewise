@@ -6,11 +6,19 @@ from backend.app.cache.semantic_cache import SemanticCache
 
 
 class DocumentSession:
-    def __init__(self, session_id: str, filename: str, chunks: List[DocumentChunk], embeddings: List[List[float]]):
+    def __init__(
+        self,
+        session_id: str,
+        filename: str,
+        chunks: List[DocumentChunk],
+        embeddings: List[List[float]],
+        file_bytes: Optional[bytes] = None,
+    ):
         self.session_id = session_id
         self.filename = filename
         self.chunks = chunks
         self.embeddings = embeddings
+        self.file_bytes = file_bytes
         self.texts = [c.text for c in chunks]
         self.hybrid_searcher = HybridSearcher(self.texts, embeddings)
         self.semantic_cache = SemanticCache()
@@ -32,9 +40,10 @@ class SessionManager:
         chunks: List[DocumentChunk],
         embeddings: List[List[float]],
         session_id: Optional[str] = None,
+        file_bytes: Optional[bytes] = None,
     ) -> DocumentSession:
         sid = session_id or str(uuid.uuid4())
-        session = DocumentSession(sid, filename, chunks, embeddings)
+        session = DocumentSession(sid, filename, chunks, embeddings, file_bytes=file_bytes)
         self._sessions[sid] = session
         return session
 

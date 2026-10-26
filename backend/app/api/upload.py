@@ -53,9 +53,10 @@ async def upload_pdf(
             detail="Document appears to be scanned or contains no extractable text. OCR parsing is required.",
         )
 
-    # Chunk document with page metadata
+    # Chunk document with page metadata (adaptive strategy: page_aware for large docs to optimize performance)
     doc_id = session_id or file.filename.replace(" ", "_")
-    chunks = chunker.chunk_pages(doc_id=doc_id, pages=parsed_doc["pages"], strategy="parent_child")
+    strategy = "parent_child" if len(parsed_doc["pages"]) <= 80 else "page_aware"
+    chunks = chunker.chunk_pages(doc_id=doc_id, pages=parsed_doc["pages"], strategy=strategy)
 
     if not chunks:
         raise HTTPException(
@@ -79,6 +80,7 @@ async def upload_pdf(
         chunks=chunks,
         embeddings=embeddings,
         session_id=session_id,
+        file_bytes=file_bytes,
     )
 
     # Optional fast summary
