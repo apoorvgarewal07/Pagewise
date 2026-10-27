@@ -14,7 +14,12 @@ except Exception:
     except Exception:
         HAS_PYMUPDF = False
 
-import pypdf
+HAS_PYPDF = False
+try:
+    import pypdf
+    HAS_PYPDF = True
+except Exception:
+    HAS_PYPDF = False
 
 
 class PDFParsingError(Exception):
@@ -92,6 +97,8 @@ class PDFParser:
         }
 
     def _parse_with_pypdf(self, file_bytes: bytes, filename: str) -> Dict[str, Any]:
+        if not HAS_PYPDF:
+            raise PDFParsingError("PDF parsing failed: neither PyMuPDF nor pypdf is available in the environment.")
         try:
             reader = pypdf.PdfReader(io.BytesIO(file_bytes))
         except Exception as e:
