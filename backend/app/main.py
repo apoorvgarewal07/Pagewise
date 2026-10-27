@@ -44,6 +44,19 @@ app.include_router(chat_router)
 app.include_router(document_router)
 
 
+@app.get("/", tags=["Root"])
+@app.head("/", tags=["Root"])
+def root():
+    """Root endpoint for health checks, pings, and service discovery."""
+    return {
+        "status": "healthy",
+        "service": "PageWise RAG Engine",
+        "version": "1.0.0",
+        "docs_url": "/docs",
+        "health_url": "/api/health",
+    }
+
+
 @app.get("/api/health", tags=["Health"])
 def health_check():
     return {

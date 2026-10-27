@@ -6,6 +6,7 @@ import { IngestionPortal } from './components/IngestionPortal.tsx';
 import { AnalyticalWorkstation } from './components/AnalyticalWorkstation.tsx';
 import { DocumentBboxViewerModal } from './components/DocumentBboxViewerModal.tsx';
 import { WaveGridBackground } from './components/ui/wave-grid-background.tsx';
+import { API_BASE } from './config.ts';
 import {
   DocumentCorpus,
   BoundingBox,
@@ -47,7 +48,7 @@ export default function App() {
   useEffect(() => {
     async function syncBackendSession() {
       try {
-        const res = await fetch('/api/chat/active');
+        const res = await fetch(`${API_BASE}/api/chat/active`);
         if (res.ok) {
           const data = await res.json();
           if (data.has_active && data.session) {
@@ -136,7 +137,7 @@ export default function App() {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('generate_summary', 'true');
-      const response = await fetch('/api/upload', {
+      const response = await fetch(`${API_BASE}/api/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -231,7 +232,7 @@ export default function App() {
 
     // Try communicating with the real FastAPI backend first
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

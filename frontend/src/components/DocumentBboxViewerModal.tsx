@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BoundingBox } from '../utils/ragEngine.ts';
+import { API_BASE } from '../config.ts';
 import {
   BookOpen,
   ChevronLeft,
@@ -63,7 +64,7 @@ export const DocumentBboxViewerModal: React.FC<DocumentBboxViewerModalProps> = (
   useEffect(() => {
     if (viewMode === 'text' && sessionId) {
       setLoadingText(true);
-      fetch(`/api/document/${sessionId}/page/${currentPage}/text`)
+      fetch(`${API_BASE}/api/document/${sessionId}/page/${currentPage}/text`)
         .then(res => res.json())
         .then(data => {
           setPageTextData(data.text || chunkText);
@@ -92,11 +93,11 @@ export const DocumentBboxViewerModal: React.FC<DocumentBboxViewerModalProps> = (
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const pageImageUrl = `/api/document/${sessionId || 'active'}/page/${currentPage}?snippet=${encodeURIComponent(
+  const pageImageUrl = `${API_BASE}/api/document/${sessionId || 'active'}/page/${currentPage}?snippet=${encodeURIComponent(
     chunkText.slice(0, 80)
   )}&dpi=160`;
 
-  const pdfEmbedUrl = `/api/document/${sessionId || 'active'}/pdf#page=${currentPage}`;
+  const pdfEmbedUrl = `${API_BASE}/api/document/${sessionId || 'active'}/pdf#page=${currentPage}`;
 
   return (
     <div
